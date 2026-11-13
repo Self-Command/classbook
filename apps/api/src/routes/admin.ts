@@ -4,29 +4,30 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import {
   MESSAGE_STATUSES,
-  albumCreateSchema,
-  albumUpdateSchema,
   inviteCreateSchema,
   memberUpdateSchema,
-  photoAttachSchema,
   resetPasswordSchema,
   settingsUpdateSchema,
   timelineCreateSchema,
   timelineUpdateSchema,
 } from '@classbook/shared';
 import { prisma } from '../db';
+import {
+  addAlbumPhotos,
+  createAlbum,
+  deleteAlbum,
+  deletePhoto,
+  updateAlbum,
+} from '../lib/album-service';
 import { ApiError } from '../lib/api-error';
 import { requireAdmin, requireAuth } from '../lib/auth';
-import { deleteUploadFile } from '../lib/delete-upload';
 import { generateUniqueInviteCode } from '../lib/invite';
 import { emptyStringsToNull } from '../lib/normalize';
 import { getPagination, getStringQuery } from '../lib/pagination';
 import {
   toAdminMemberDto,
-  toAlbumSummaryDto,
   toInviteCodeDto,
   toMessageDto,
-  toPhotoDto,
   toSiteSettingsDto,
   toTimelineEventDto,
 } from '../lib/serialize';
@@ -44,15 +45,6 @@ const memberInclude = {
   profile: true,
   _count: { select: { messages: true } },
 } satisfies Prisma.UserInclude;
-
-const albumSummaryInclude = {
-  photos: {
-    take: 1,
-    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
-    select: { url: true },
-  },
-  _count: { select: { photos: true } },
-} satisfies Prisma.AlbumInclude;
 
 export const adminRouter = Router();
 
@@ -278,110 +270,27 @@ adminRouter.patch('/messages/:id', async (req, res) => {
 });
 
 adminRouter.post('/albums', async (req, res) => {
-  const body = emptyStringsToNull(req.body, ['description']);
-  const data = albumCreateSchema.parse(body);
-
-  const album = await prisma.album.create({
-    data: {
-      title: data.title,
-      description: data.description ?? null,
-      createdById: req.user!.id,
-    },
-  });
-
-  res.status(201).json({ album: toAlbumSummaryDto(album, 0, null) });
+  const album = await createAlbum(req.user!.id, req.body);
+  res.status(201).json({ album });
 });
 
 adminRouter.patch('/albums/:id', async (req, res) => {
-  const body = emptyStringsToNull(req.body, ['description', 'coverUrl']);
-  const data = albumUpdateSchema.parse(body);
-
-  const existing = await prisma.album.findUnique({
-    where: { id: req.params.id },
-    select: { id: true },
-  });
-  if (!existing) {
-    throw new ApiError(404, 'NOT_FOUND', '相册不存在');
-  }
-
-  const album = await prisma.album.update({
-    where: { id: existing.id },
-    data,
-    include: albumSummaryInclude,
-  });
-
-  res.status(200).json({
-    album: toAlbumSummaryDto(album, album._count.photos, album.photos[0]?.url ?? null),
-  });
+  const album = await updateAlbum(req.params.id, req.body);
+  res.status(200).json({ album });
 });
 
 adminRouter.delete('/albums/:id', async (req, res) => {
-  const album = await prisma.album.findUnique({
-    where: { id: req.params.id },
-    include: { photos: { select: { url: true, videoUrl: true } } },
-  });
-  if (!album) {
-    throw new ApiError(404, 'NOT_FOUND', '相册不存在');
-  }
-
-  await prisma.album.delete({ where: { id: album.id } });
-
-  const urls = album.photos.flatMap((photo) => [photo.url, photo.videoUrl ?? null]);
-  if (album.coverUrl) urls.push(album.coverUrl);
-  await Promise.allSettled(urls.map((url) => deleteUploadFile(url)));
-
+  await deleteAlbum(req.params.id);
   res.status(204).end();
 });
 
 adminRouter.post('/albums/:id/photos', async (req, res) => {
-  const body = emptyStringsToNull(req.body, ['caption']);
-  const data = photoAttachSchema.parse(body);
-
-  const album = await prisma.album.findUnique({
-    where: { id: req.params.id },
-    select: { id: true },
-  });
-  if (!album) {
-    throw new ApiError(404, 'NOT_FOUND', '相册不存在');
-  }
-
-  const aggregate = await prisma.photo.aggregate({
-    where: { albumId: album.id },
-    _max: { sortOrder: true },
-  });
-  const startOrder = aggregate._max.sortOrder === null ? 0 : aggregate._max.sortOrder + 1;
-
-  const items = data.photos ?? (data.urls ?? []).map((url) => ({ url, videoUrl: null }));
-
-  const photos = await prisma.$transaction(
-    items.map((item, index) =>
-      prisma.photo.create({
-        data: {
-          albumId: album.id,
-          url: item.url,
-          videoUrl: item.videoUrl ?? null,
-          caption: data.caption ?? null,
-          sortOrder: startOrder + index,
-        },
-      }),
-    ),
-  );
-
-  res.status(201).json({ photos: photos.map(toPhotoDto) });
+  const photos = await addAlbumPhotos(req.params.id, req.body);
+  res.status(201).json({ photos });
 });
 
 adminRouter.delete('/photos/:id', async (req, res) => {
-  const photo = await prisma.photo.findUnique({
-    where: { id: req.params.id },
-    select: { id: true, url: true, videoUrl: true },
-  });
-  if (!photo) {
-    throw new ApiError(404, 'NOT_FOUND', '照片不存在');
-  }
-
-  await prisma.photo.delete({ where: { id: photo.id } });
-  await Promise.all([deleteUploadFile(photo.url), deleteUploadFile(photo.videoUrl)]);
-
+  await deletePhoto(req.params.id);
   res.status(204).end();
 });
 
