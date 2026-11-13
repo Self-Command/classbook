@@ -1,6 +1,7 @@
 import { Chip } from '@heroui/react';
 import { albumsApi } from '@/lib/api';
 import { useAsyncData } from '@/lib/useAsyncData';
+import { useSiteCopy } from '@/lib/siteCopy';
 import { IconAlbum, IconCamera } from '@/components/icons';
 import { AlbumCard } from '@/components/content/AlbumCard';
 import { EmptyPanel, ErrorPanel } from '@/components/content/ContentStates';
@@ -8,6 +9,7 @@ import { AlbumGridSkeleton } from '@/components/content/ContentSkeletons';
 import { PageShell } from '@/components/content/PageShell';
 
 export default function AlbumsPage() {
+  const { copy } = useSiteCopy();
   const { data, loading, error, reload } = useAsyncData(() => albumsApi.list(), []);
 
   return (
@@ -20,9 +22,9 @@ export default function AlbumsPage() {
           </Chip>
         ) : undefined
       }
-      description="快门按下的一瞬间，时间就被留了下来。"
+      description={copy.albumsDescription}
       eyebrow="光影留存"
-      title="班级相册"
+      title={copy.albumsTitle}
     >
       {loading && !data && <AlbumGridSkeleton />}
 
@@ -32,9 +34,9 @@ export default function AlbumsPage() {
 
       {!loading && !error && data && data.items.length === 0 && (
         <EmptyPanel
-          description="等管理员把第一组照片放进来，这里就会有颜色了。"
+          description={copy.albumsEmptyDescription}
           icon={<IconCamera className="size-5" />}
-          title="相册还是空的"
+          title={copy.albumsEmptyTitle}
         />
       )}
 

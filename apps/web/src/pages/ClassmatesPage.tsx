@@ -4,6 +4,7 @@ import { Button, Label, SearchField, Spinner } from '@heroui/react';
 import { profilesApi } from '@/lib/api';
 import { useAsyncData } from '@/lib/useAsyncData';
 import { useDebouncedValue } from '@/lib/useDebouncedValue';
+import { useSiteCopy } from '@/lib/siteCopy';
 import { IconSearch, IconUsers } from '@/components/icons';
 import { ClassmateCard } from '@/components/content/ClassmateCard';
 import { EmptyPanel, ErrorPanel } from '@/components/content/ContentStates';
@@ -12,6 +13,7 @@ import { PageShell } from '@/components/content/PageShell';
 import { PaginationBar } from '@/components/content/PaginationBar';
 
 export default function ClassmatesPage() {
+  const { copy } = useSiteCopy();
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const debouncedQuery = useDebouncedValue(query.trim(), 300);
@@ -38,9 +40,9 @@ export default function ClassmatesPage() {
 
   return (
     <PageShell
-      description="名字还是记忆里的样子，故事已经翻到了新的一页。"
+      description={copy.classmatesDescription}
       eyebrow="同窗名录"
-      title="同学录"
+      title={copy.classmatesTitle}
     >
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <SearchField
@@ -88,10 +90,10 @@ export default function ClassmatesPage() {
           description={
             debouncedQuery
               ? '换一个名字或昵称试试看。'
-              : '等第一位同学写下自己的档案后，这里就会热闹起来。'
+              : copy.classmatesEmptyDescription
           }
           icon={<IconUsers className="size-5" />}
-          title={debouncedQuery ? '没有找到匹配的同学' : '同学录还是空白'}
+          title={debouncedQuery ? '没有找到匹配的同学' : copy.classmatesEmptyTitle}
         />
       )}
 

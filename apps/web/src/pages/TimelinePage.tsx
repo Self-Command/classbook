@@ -3,6 +3,7 @@ import type { TimelineEventDto } from '@classbook/shared';
 import { Card } from '@heroui/react';
 import { timelineApi } from '@/lib/api';
 import { useAsyncData } from '@/lib/useAsyncData';
+import { useSiteCopy } from '@/lib/siteCopy';
 import { formatDate, timelineYear } from '@/lib/format';
 import { IconCalendar, IconClock } from '@/components/icons';
 import { EmptyPanel, ErrorPanel } from '@/components/content/ContentStates';
@@ -15,6 +16,7 @@ interface YearGroup {
 }
 
 export default function TimelinePage() {
+  const { copy } = useSiteCopy();
   const { data, loading, error, reload } = useAsyncData(() => timelineApi.list(), []);
 
   const groups = useMemo<YearGroup[]>(() => {
@@ -41,9 +43,9 @@ export default function TimelinePage() {
 
   return (
     <PageShell
-      description="把日子一页页翻回去，原来我们已经一起走了这么远。"
+      description={copy.timelineDescription}
       eyebrow="拾光纪事"
-      title="班级时间线"
+      title={copy.timelineTitle}
     >
       {loading && !data && <TimelineSkeleton />}
 
@@ -53,9 +55,9 @@ export default function TimelinePage() {
 
       {!loading && !error && data && data.items.length === 0 && (
         <EmptyPanel
-          description="等第一条纪事被写上去，这里就会开始生长。"
+          description={copy.timelineEmptyDescription}
           icon={<IconClock className="size-5" />}
-          title="时间线还没有故事"
+          title={copy.timelineEmptyTitle}
         />
       )}
 

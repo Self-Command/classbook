@@ -4,6 +4,7 @@ import type { SiteSettingsDto, UserDto } from '@classbook/shared';
 import { messagesApi, settingsApi, timelineApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useAsyncData } from '@/lib/useAsyncData';
+import { useSiteCopy } from '@/lib/siteCopy';
 import { formatDate, formatDateTime, formatShortDate } from '@/lib/format';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import {
@@ -68,23 +69,24 @@ export default function HomePage() {
 
 function LandingContent({ settings }: { settings: SiteSettingsDto }) {
   const navigate = useNavigate();
+  const { copy } = useSiteCopy();
 
   const features = [
     {
-      title: '同窗档案',
-      description: '把散落在各地的名字重新聚在一起，看看每个人现在的模样。',
+      title: copy.homeFeature1Title,
+      description: copy.homeFeature1Desc,
       icon: <IconUsers className="size-5" />,
       tone: 'bg-accent/10 text-accent',
     },
     {
-      title: '纸短情长',
-      description: '在班级留言墙或同学的个人留言板上，留下一句想说的话。',
+      title: copy.homeFeature2Title,
+      description: copy.homeFeature2Desc,
       icon: <IconMessage className="size-5" />,
       tone: 'bg-success/10 text-success',
     },
     {
-      title: '光影与纪事',
-      description: '相册收藏旧时光，时间线记下那些值得被记住的日子。',
+      title: copy.homeFeature3Title,
+      description: copy.homeFeature3Desc,
       icon: <IconAlbum className="size-5" />,
       tone: 'bg-warning/15 text-warning-foreground',
     },
@@ -109,7 +111,9 @@ function LandingContent({ settings }: { settings: SiteSettingsDto }) {
           </div>
 
           <div>
-            <p className="text-xs font-medium tracking-[0.28em] text-accent">拾光同学录</p>
+            <p className="text-xs font-medium tracking-[0.28em] text-accent">
+              {copy.homeEyebrow}
+            </p>
             <h1 className="mt-3 font-display text-4xl leading-tight text-foreground sm:text-6xl">
               {settings.className}
             </h1>
@@ -126,10 +130,10 @@ function LandingContent({ settings }: { settings: SiteSettingsDto }) {
 
           <div className="flex flex-wrap gap-3">
             <Button size="lg" onPress={() => navigate('/login')}>
-              登录同学录
+              {copy.homeCtaLogin}
             </Button>
             <Button size="lg" variant="secondary" onPress={() => navigate('/register')}>
-              用邀请码注册
+              {copy.homeCtaRegister}
             </Button>
           </div>
 
@@ -186,7 +190,7 @@ function LandingContent({ settings }: { settings: SiteSettingsDto }) {
         <p className="mt-3 font-display text-lg leading-8 text-foreground">
           「把青春留在纸上，把牵挂留在这里。」
         </p>
-        <p className="mt-2 text-xs text-muted">拾光同学录 · {settings.className}</p>
+        <p className="mt-2 text-xs text-muted">{copy.siteName} · {settings.className}</p>
       </Card>
     </PageContainer>
   );
@@ -194,6 +198,7 @@ function LandingContent({ settings }: { settings: SiteSettingsDto }) {
 
 function MemberHome({ settings, user }: { settings: SiteSettingsDto; user: UserDto }) {
   const navigate = useNavigate();
+  const { copy } = useSiteCopy();
   const { data, loading, error, reload } = useAsyncData(async () => {
     const [messageResult, timelineResult] = await Promise.all([
       messagesApi.list({ page: 1, pageSize: 4 }),
@@ -244,7 +249,7 @@ function MemberHome({ settings, user }: { settings: SiteSettingsDto; user: UserD
         <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
           <div className="flex flex-col justify-center gap-4 px-6 py-10 sm:px-10 sm:py-14">
             <p className="text-xs tracking-[0.26em] text-muted">
-              {settings.schoolName ?? '拾光同学录'}
+              {settings.schoolName ?? copy.siteName}
               {settings.graduationYear ? ` · ${settings.graduationYear} 届` : ' · 毕业纪念'}
             </p>
             <div className="flex items-center gap-3">
@@ -254,11 +259,11 @@ function MemberHome({ settings, user }: { settings: SiteSettingsDto; user: UserD
                 className="size-12 shrink-0 lg:hidden"
               />
               <h1 className="font-display text-2xl leading-tight text-foreground sm:text-4xl">
-                欢迎回来，{displayName}
+                {copy.homeMemberGreeting}，{displayName}
               </h1>
             </div>
             <p className="max-w-xl text-sm leading-6 text-muted">
-              {settings.slogan ?? '在这里，和同学们继续书写我们的故事。'}
+              {settings.slogan ?? copy.homeMemberSubtitle}
             </p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Button onPress={() => navigate('/wall')}>写一条留言</Button>

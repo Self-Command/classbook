@@ -9,22 +9,14 @@ import {
   toast,
   useOverlayState,
 } from '@heroui/react';
-import { getErrorMessage, settingsApi } from '@/lib/api';
+import { getErrorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { useAsyncData } from '@/lib/useAsyncData';
+import { useSiteCopy } from '@/lib/siteCopy';
 import { SwarmPageBuild } from '@/features/swarm/index.js';
 import '@/features/swarm/styles/index.css';
 import { UserAvatar } from './ui/UserAvatar';
 import { ThemeSwitcher } from './theme/ThemeSwitcher';
 import { IconLogout, IconMenu, IconUser } from './ui/icons';
-
-const navItems = [
-  { to: '/', label: '首页', end: true },
-  { to: '/classmates', label: '同学录' },
-  { to: '/wall', label: '留言墙' },
-  { to: '/albums', label: '相册' },
-  { to: '/timeline', label: '时间线' },
-];
 
 function navLinkClass({ isActive }: { isActive: boolean }): string {
   return [
@@ -46,14 +38,19 @@ function mobileNavLinkClass({ isActive }: { isActive: boolean }): string {
 
 export function Layout() {
   const { user, loading, logout } = useAuth();
+  const { copy, settings, loading: settingsLoading } = useSiteCopy();
   const navigate = useNavigate();
   const location = useLocation();
   const mobileMenu = useOverlayState();
-  const { data: settings, loading: settingsLoading } = useAsyncData(
-    () => settingsApi.getPublic(),
-    [],
-  );
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const navItems = [
+    { to: '/', label: copy.navHome, end: true },
+    { to: '/classmates', label: copy.navClassmates },
+    { to: '/wall', label: copy.navPlaza },
+    { to: '/albums', label: copy.navAlbums },
+    { to: '/timeline', label: copy.navTimeline },
+  ];
 
   useEffect(() => {
     mobileMenu.close();
@@ -82,11 +79,11 @@ export function Layout() {
         <div className="mx-auto flex h-16 w-full max-w-[1120px] items-center gap-3 px-4 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent font-display text-base text-accent-foreground shadow-sm">
-              拾
+              {copy.logoText}
             </span>
             <span className="min-w-0 leading-tight">
               <span className="block font-display text-base text-foreground sm:text-lg">
-                拾光同学录
+                {copy.siteName}
               </span>
               {settingsLoading ? (
                 <Skeleton className="mt-1 hidden h-2.5 w-20 rounded-full sm:block" />
@@ -127,8 +124,8 @@ export function Layout() {
                       if (key === 'logout') void handleLogout();
                     }}
                   >
-                    <Dropdown.Item id="me" textValue="我的档案">
-                      <Label>我的档案</Label>
+                    <Dropdown.Item id="me" textValue={copy.navMe}>
+                      <Label>{copy.navMe}</Label>
                     </Dropdown.Item>
                     <Dropdown.Item id="logout" textValue="退出登录" variant="danger">
                       <Label>退出登录</Label>
@@ -196,7 +193,7 @@ export function Layout() {
                             }}
                           >
                             <IconUser className="size-4" />
-                            我的档案
+                            {copy.navMe}
                           </Button>
                           <Button
                             variant="danger-soft"
@@ -251,7 +248,10 @@ export function Layout() {
             {settings?.className ?? '我们的班级'}
             {settings?.graduationYear ? ` · ${settings.graduationYear} 届` : ''}
           </p>
-          <p>拾光同学录 · 愿记忆有处安放</p>
+          <div className="text-left sm:text-right">
+            <p>{copy.footerText}</p>
+            <p className="mt-1">{copy.footerCopyright}</p>
+          </div>
         </div>
       </footer>
     </div>
