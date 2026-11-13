@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/messages', label: '留言审核', icon: 'message' },
   { to: '/albums', label: '相册管理', icon: 'album' },
   { to: '/timeline', label: '时间线', icon: 'timeline' },
+  { to: '/copy', label: '文案管理', icon: 'copy' },
   { to: '/settings', label: '站点设置', icon: 'settings' },
 ];
 

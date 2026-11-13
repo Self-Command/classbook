@@ -12,6 +12,7 @@ import { MessagesPage } from './pages/MessagesPage';
 import { AlbumsPage } from './pages/AlbumsPage';
 import { AlbumDetailPage } from './pages/AlbumDetailPage';
 import { TimelinePage } from './pages/TimelinePage';
+import { CopyPage } from './pages/CopyPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -32,6 +33,7 @@ export default function App() {
                 <Route path="albums" element={<AlbumsPage />} />
                 <Route path="albums/:id" element={<AlbumDetailPage />} />
                 <Route path="timeline" element={<TimelinePage />} />
+                <Route path="copy" element={<CopyPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
