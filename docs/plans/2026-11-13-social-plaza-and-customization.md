@@ -137,7 +137,7 @@ export const siteCopySchema = z
 
 **Files:**
 - Modify: `apps/api/prisma/schema.prisma`
-- Create: `apps/api/prisma/migrations/20261113160000_social_core/migration.sql`
+- Create: `apps/api/prisma/migrations/20261113160000_site_copy/migration.sql`
 - Modify: `apps/api/src/routes/settings.ts`、`apps/api/src/routes/admin.ts`、`apps/api/src/lib/serialize.ts`
 - Test: `apps/api/tests/settings-copy.test.ts`
 
@@ -305,7 +305,7 @@ DELETE /api/albums/photos/:id
 
 **Files:**
 - Modify: `apps/api/prisma/schema.prisma`
-- Modify: `apps/api/prisma/migrations/20261113160000_social_core/migration.sql`
+- Create: `apps/api/prisma/migrations/20261113180000_social_core/migration.sql`
 - Modify: `apps/api/tests/helpers.ts`
 
 **Step 1:** Prisma 增加：
