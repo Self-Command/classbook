@@ -231,6 +231,10 @@ describe('管理后台', () => {
       slogan: '青春不散场',
       heroImageUrl: '/uploads/hero.jpg',
       defaultTheme: 'warm',
+      imageCompressEnabled: true,
+      imageCompressThresholdKb: 1024,
+      imageMaxDimension: 1920,
+      imageQuality: 82,
     });
 
     const publicSettings = await request(app).get('/api/settings/public');
