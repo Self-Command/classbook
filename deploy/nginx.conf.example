@@ -1,0 +1,22 @@
+# 宿主机 Nginx：只负责域名、HTTPS 和反代到 Web 容器。
+# 复制到 /etc/nginx/sites-available/classbook，替换域名后启用。
+server {
+    listen 80;
+    listen [::]:80;
+    server_name classbook.example.com;
+
+    client_max_body_size 6m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    # HTTPS 用 certbot 自动生成并改写本文件：
+    # sudo certbot --nginx -d classbook.example.com --redirect
+}

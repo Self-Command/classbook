@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+**/dist
+.dev
+.agents
+.git
+.github
+docs
+screenshots
+**/uploads
+**/.env
+**/.env.*
+*.log
+coverage

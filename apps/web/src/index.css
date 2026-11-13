@@ -1,0 +1,63 @@
+@import "tailwindcss";
+@import "@heroui/styles";
+@import "./styles/themes.css";
+
+/* 拾光同学录主题：明亮社交风（无渐变），基于 HeroUI 默认主题做变量覆盖 */
+@layer base {
+  [data-theme="light"] {
+    /* 圆角：社交 App 大圆角 */
+    --radius: 1rem;
+    --field-radius: 0.875rem;
+
+    /* 基底：暖白纸面，干净无渐变 */
+    --background: oklch(0.984 0.006 95);
+    --foreground: oklch(0.28 0.03 255);
+    --surface: oklch(1 0 0);
+    --surface-foreground: var(--foreground);
+    --overlay: oklch(1 0 0);
+    --overlay-foreground: var(--foreground);
+    --default: oklch(0.958 0.008 95);
+    --default-foreground: oklch(0.32 0.03 255);
+    --muted: oklch(0.55 0.02 255);
+
+    /* 品牌强调色：珊瑚橙 */
+    --accent: oklch(0.68 0.17 40);
+    --accent-foreground: oklch(0.99 0 0);
+    --segment: oklch(0.955 0.008 95);
+    --segment-foreground: var(--foreground);
+
+    /* 状态色 */
+    --success: oklch(0.68 0.15 155);
+    --success-foreground: oklch(0.99 0 0);
+    --warning: oklch(0.78 0.15 75);
+    --warning-foreground: oklch(0.3 0.02 255);
+    --danger: oklch(0.62 0.22 25);
+    --danger-foreground: oklch(0.99 0 0);
+
+    /* 表单字段 */
+    --field-background: var(--surface);
+    --field-foreground: var(--foreground);
+    --field-placeholder: var(--muted);
+    --field-border: transparent;
+
+    /* 线与焦点 */
+    --border: oklch(0.35 0.03 255 / 12%);
+    --separator: oklch(0.93 0.006 95);
+    --focus: var(--accent);
+    --link: var(--accent);
+  }
+}
+
+/* 桥接旧的自定义工具类（过渡期），最终以 HeroUI 组件为准 */
+@theme {
+  --font-sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--accent) 25%, transparent);
+}

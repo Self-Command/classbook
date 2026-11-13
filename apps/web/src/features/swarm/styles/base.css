@@ -1,0 +1,21 @@
+/*
+ * 模块只提供自己的命名空间样式；全局页面布局由宿主或独立演示入口负责。
+ * --paper/--ink 作为模块内部兜底色，优先跟随宿主主题令牌，
+ * 这样重建层、氛围光标与提示条在 noir/marine/forest 下都能保持同一色系。
+ */
+.swarm-experience {
+  --paper: var(--background, #faf5ee);
+  --ink: var(--foreground, #2a231d);
+  width: 100%;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+.swarm-experience,
+.swarm-experience *,
+.swarm-experience *::before,
+.swarm-experience *::after {
+  box-sizing: border-box;
+}

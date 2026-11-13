@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum MessageStatus {
+  VISIBLE
+  HIDDEN
+}
+
+model User {
+  id           String      @id @default(cuid())
+  username     String      @unique
+  passwordHash String
+  role         Role        @default(MEMBER)
+  status       UserStatus  @default(ACTIVE)
+  theme        String?
+  tokenVersion Int         @default(0)
+  inviteCodeId String?
+  inviteCode   InviteCode? @relation(fields: [inviteCodeId], references: [id])
+  profile      Profile?
+  messages     Message[]   @relation("author")
+  received     Message[]   @relation("recipient")
+  albums       Album[]
+  timeline     TimelineEvent[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model InviteCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  note        String?
+  maxUses     Int      @default(1)
+  usedCount   Int      @default(0)
+  expiresAt   DateTime?
+  disabled    Boolean  @default(false)
+  createdById String?
+  users       User[]
+  createdAt   DateTime @default(now())
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  realName  String
+  nickname  String?
+  avatarUrl String?
+  motto     String?
+  bio       String?  @db.Text
+  location  String?
+  birthday  String?
+  wechat    String?
+  qq        String?
+  email     String?
+  phone     String?
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id        String        @id @default(cuid())
+  authorId  String
+  author    User          @relation("author", fields: [authorId], references: [id], onDelete: Cascade)
+  toUserId  String?
+  toUser    User?         @relation("recipient", fields: [toUserId], references: [id], onDelete: SetNull)
+  content   String        @db.Text
+  status    MessageStatus @default(VISIBLE)
+  createdAt DateTime      @default(now())
+
+  @@index([status, createdAt])
+  @@index([toUserId, status, createdAt])
+}
+
+model Album {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  coverUrl    String?
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  photos      Photo[]
+  createdAt   DateTime @default(now())
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  albumId   String
+  album     Album    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  url       String
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([albumId, sortOrder])
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  date        DateTime
+  title       String
+  description String?  @db.Text
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([date])
+}
+
+model SiteSetting {
+  id             Int      @id @default(1)
+  className      String   @default("我们的班级")
+  schoolName     String?
+  graduationYear Int?
+  slogan         String?
+  heroImageUrl   String?
+  defaultTheme   String   @default("warm")
+  updatedAt      DateTime @updatedAt
+}

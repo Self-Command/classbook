@@ -1,0 +1,270 @@
+/*
+ * 页面重建层按文档高度铺开，滚动时随页面移动，施工完成后淡出。
+ * 颜色全部取自主题令牌（apps/web/src/styles/themes.css），
+ * 切换 warm/noir/marine/forest 时重建层与氛围光标自动跟随，
+ * 取不到令牌时退回 .swarm-experience 上定义的 --paper/--ink。
+ */
+.swarm-experience.swarm-build-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  opacity: 1;
+  /* 遮罩只做视觉再现，不得拦截真实页面的点击与表单输入。 */
+  pointer-events: none !important;
+  transition: opacity 0.42s ease;
+}
+.swarm-experience.swarm-build-overlay.is-leaving {
+  opacity: 0;
+}
+.swarm-experience.swarm-build-overlay .canvas,
+.swarm-experience.swarm-build-overlay .cursors {
+  pointer-events: none !important;
+}
+.swarm-experience.swarm-build-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  background: var(--background, var(--paper));
+  color: var(--foreground, var(--ink));
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+.swarm-build-curtain__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted, currentColor);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+.swarm-build-curtain__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent, var(--paper));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent, var(--ink)) 16%, transparent);
+  animation: swarm-build-pulse 1.4s ease-in-out infinite;
+}
+/*
+ * 控制条容器固定在视口底部并只负责居中；自身不接收指针事件，
+ * 视觉与控制权交给内部 .swarm-build-bar，避免窄屏超出视口。
+ */
+.swarm-build-bar-anchor {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 20px;
+  z-index: 120;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.swarm-build-bar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  /* 375px窄屏时控制条内部横向滚动，不产生页面级横向溢出。 */
+  padding: 6px;
+  border: 1px solid var(--border, var(--separator, currentColor));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--overlay, var(--surface, var(--paper))) 95%, transparent);
+  color: var(--foreground, var(--ink));
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  box-shadow: var(--overlay-shadow, 0 14px 42px rgb(0 0 0 / 18%));
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+.swarm-build-bar__status {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px 0 8px;
+  color: var(--muted, currentColor);
+  font-size: 12px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.swarm-build-bar__dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent, var(--ink));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, var(--ink)) 16%, transparent);
+  animation: swarm-build-pulse 1.4s ease-in-out infinite;
+}
+.swarm-build-bar__divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: var(--separator, var(--border, currentColor));
+}
+/* 操作按钮独立成组，窄屏时可在组内横向滚动而不撑破控制条。 */
+.swarm-build-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.swarm-build-bar__actions::-webkit-scrollbar {
+  display: none;
+}
+/* 音量组固定在操作按钮右侧，不参与横向滚动，保证随时可静音/调节。 */
+.swarm-build-bar__volume {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  padding-right: 2px;
+}
+.swarm-build-bar__volume-range {
+  width: 68px;
+  height: 20px;
+  margin: 0 4px 0 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+  accent-color: var(--accent, var(--ink));
+}
+.swarm-build-bar__volume-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground, var(--ink)) 22%, transparent);
+}
+.swarm-build-bar__volume-range::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent, var(--ink));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.swarm-build-bar__volume-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground, var(--ink)) 22%, transparent);
+}
+.swarm-build-bar__volume-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent, var(--ink));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+}
+.swarm-build-bar__volume-range:focus-visible {
+  outline: 2px solid var(--accent, currentColor);
+  outline-offset: 3px;
+  border-radius: 999px;
+}
+.swarm-build-bar button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--foreground, var(--ink));
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.swarm-build-bar button:hover {
+  background: var(--default, var(--surface-secondary, transparent));
+}
+.swarm-build-bar button:focus-visible {
+  outline: 2px solid var(--accent, currentColor);
+  outline-offset: 2px;
+}
+.swarm-build-bar button.is-primary {
+  background: var(--accent, var(--ink));
+  color: var(--accent-foreground, #fff);
+}
+.swarm-build-bar button.is-primary:hover {
+  background: color-mix(in srgb, var(--accent, var(--ink)) 86%, black);
+}
+.swarm-build-bar svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+@keyframes swarm-build-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+@media (max-width: 640px) {
+  .swarm-build-bar-anchor {
+    left: 8px;
+    right: 8px;
+    bottom: 14px;
+  }
+  .swarm-build-bar {
+    padding: 5px;
+  }
+  .swarm-build-bar__status {
+    padding: 0 6px;
+    font-size: 11px;
+  }
+  /* 窄屏只保留进度数字，把空间让给操作与音量控件。 */
+  .swarm-build-bar__prefix,
+  .swarm-build-bar__hint {
+    display: none;
+  }
+  .swarm-build-bar__volume-range {
+    width: 48px;
+  }
+  .swarm-build-bar__label {
+    display: none;
+  }
+  .swarm-build-bar button {
+    padding: 0 9px;
+  }
+}
+@media (max-width: 420px) {
+  .swarm-build-bar button {
+    padding: 0 7px;
+  }
+  .swarm-build-bar__volume-range {
+    width: 42px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* 组件层已跳过渲染，这里再兜底隐藏，避免任何途径残留遮罩。 */
+  .swarm-experience.swarm-build-overlay,
+  .swarm-experience.swarm-build-curtain {
+    display: none;
+  }
+  .swarm-build-bar__dot,
+  .swarm-build-curtain__dot {
+    animation: none;
+  }
+}

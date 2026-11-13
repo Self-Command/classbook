@@ -1,0 +1,42 @@
+/* 每个工人通过独立transform移动，光标层不会截获页面输入。 */
+.swarm-experience .cursors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 30;
+}
+.swarm-experience .cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+.swarm-experience .cursor svg {
+  position: absolute;
+  overflow: visible;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 28%));
+}
+/*
+ * 全站光标层固定在视口上，只负责氛围动效，不绘制页面内容也不拦截点击。
+ * 层级低于遮罩(100)与控制条(120)，高于正文但整体透明，
+ * pointer-events 始终为 none，避免遮挡真实内容的点击。
+ */
+.swarm-experience.swarm-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  background: transparent;
+  pointer-events: none !important;
+  opacity: 0.38;
+}
+.swarm-ambient .cursors {
+  height: 100% !important;
+  pointer-events: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .swarm-experience.swarm-ambient {
+    display: none;
+  }
+}

@@ -1,0 +1,253 @@
+/*
+ * 拾光同学录主题预设
+ * 只覆盖 HeroUI v3 的设计令牌（data-theme），不叠加渐变、纹理或变形，
+ * 保证正文、表单、按钮在浅色与深色主题下都有足够对比度。
+ */
+
+@layer base {
+  /* 暖光：暖白纸面 + 深墨文字 + 珊瑚橙 */
+  [data-theme="warm"] {
+    color-scheme: light;
+
+    --background: #faf7f0;
+    --foreground: #1f2a37;
+    --surface: #ffffff;
+    --surface-foreground: var(--foreground);
+    --surface-secondary: #f5f1e9;
+    --surface-secondary-foreground: var(--foreground);
+    --surface-tertiary: #ede7db;
+    --surface-tertiary-foreground: var(--foreground);
+    --overlay: #fffdf8;
+    --overlay-foreground: var(--foreground);
+    --muted: #5b6472;
+    --default: #f1ece2;
+    --default-foreground: #1f2a37;
+
+    --accent: #c2410c;
+    --accent-foreground: #ffffff;
+    --segment: #f1ece2;
+    --segment-foreground: var(--foreground);
+
+    --success: #15803d;
+    --success-foreground: #ffffff;
+    --warning: #b45309;
+    --warning-foreground: #ffffff;
+    --danger: #b91c1c;
+    --danger-foreground: #ffffff;
+
+    --field-background: #ffffff;
+    --field-foreground: #1f2a37;
+    --field-placeholder: #6b7280;
+    --field-border: rgba(31, 42, 55, 0.16);
+
+    --border: rgba(31, 42, 55, 0.16);
+    --separator: rgba(31, 42, 55, 0.09);
+    --focus: #c2410c;
+    --link: #9a3412;
+    --backdrop: rgba(15, 23, 42, 0.5);
+
+    --radius: 1rem;
+    --field-radius: 0.875rem;
+    --border-width: 1px;
+    --field-border-width: 1px;
+
+    --surface-shadow:
+      0 1px 2px rgba(31, 42, 55, 0.05), 0 10px 30px rgba(31, 42, 55, 0.06);
+    --overlay-shadow: 0 18px 50px rgba(31, 42, 55, 0.16);
+    --field-shadow: 0 1px 2px rgba(31, 42, 55, 0.06);
+    --skeleton-animation: shimmer;
+
+    --scrollbar-thumb: color-mix(in oklch, var(--foreground) 15%, transparent);
+    --scrollbar-track: transparent;
+    --scrollbar-gutter: auto;
+    --scrollbar-width: thin;
+    --scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    --scrollbar: var(--scrollbar-thumb);
+
+    --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  }
+
+  /* 墨夜：深墨底 + 雾蓝高光 */
+  [data-theme="noir"] {
+    color-scheme: dark;
+
+    --background: #0b0f14;
+    --foreground: #f5f7fa;
+    --surface: #141a22;
+    --surface-foreground: var(--foreground);
+    --surface-secondary: #1a222c;
+    --surface-secondary-foreground: var(--foreground);
+    --surface-tertiary: #222c38;
+    --surface-tertiary-foreground: var(--foreground);
+    --overlay: #1a2230;
+    --overlay-foreground: var(--foreground);
+    --muted: #a3adba;
+    --default: #1f2833;
+    --default-foreground: #f5f7fa;
+
+    --accent: #93c5fd;
+    --accent-foreground: #0b1b33;
+    --segment: #26303c;
+    --segment-foreground: var(--foreground);
+
+    --success: #6ee7b7;
+    --success-foreground: #04231a;
+    --warning: #fcd34d;
+    --warning-foreground: #2a1a00;
+    --danger: #f87171;
+    --danger-foreground: #2a0710;
+
+    --field-background: #141a22;
+    --field-foreground: #f5f7fa;
+    --field-placeholder: #8b96a5;
+    --field-border: rgba(255, 255, 255, 0.18);
+
+    --border: rgba(255, 255, 255, 0.14);
+    --separator: rgba(255, 255, 255, 0.08);
+    --focus: #93c5fd;
+    --link: #bfdbfe;
+    --backdrop: rgba(0, 0, 0, 0.65);
+
+    --radius: 1rem;
+    --field-radius: 0.875rem;
+    --border-width: 1px;
+    --field-border-width: 1px;
+
+    --surface-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --overlay-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 24px 60px rgba(0, 0, 0, 0.55);
+    --field-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --skeleton-animation: shimmer;
+
+    --scrollbar-thumb: color-mix(in oklch, var(--foreground) 18%, transparent);
+    --scrollbar-track: transparent;
+    --scrollbar-gutter: auto;
+    --scrollbar-width: thin;
+    --scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    --scrollbar: var(--scrollbar-thumb);
+
+    --font-display: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+
+  /* 海盐：冷调雾蓝 + 深海蓝 */
+  [data-theme="marine"] {
+    color-scheme: light;
+
+    --background: #f3f6fa;
+    --foreground: #0f2744;
+    --surface: #ffffff;
+    --surface-foreground: var(--foreground);
+    --surface-secondary: #eaf0f7;
+    --surface-secondary-foreground: var(--foreground);
+    --surface-tertiary: #dfe8f2;
+    --surface-tertiary-foreground: var(--foreground);
+    --overlay: #ffffff;
+    --overlay-foreground: var(--foreground);
+    --muted: #52647a;
+    --default: #e7edf5;
+    --default-foreground: #0f2744;
+
+    --accent: #1d4ed8;
+    --accent-foreground: #ffffff;
+    --segment: #e7edf5;
+    --segment-foreground: var(--foreground);
+
+    --success: #15803d;
+    --success-foreground: #ffffff;
+    --warning: #b45309;
+    --warning-foreground: #ffffff;
+    --danger: #b91c1c;
+    --danger-foreground: #ffffff;
+
+    --field-background: #ffffff;
+    --field-foreground: #0f2744;
+    --field-placeholder: #64748b;
+    --field-border: rgba(15, 39, 68, 0.16);
+
+    --border: rgba(15, 39, 68, 0.16);
+    --separator: rgba(15, 39, 68, 0.09);
+    --focus: #1d4ed8;
+    --link: #1e40af;
+    --backdrop: rgba(15, 23, 42, 0.5);
+
+    --radius: 0.875rem;
+    --field-radius: 0.75rem;
+    --border-width: 1px;
+    --field-border-width: 1px;
+
+    --surface-shadow:
+      0 1px 2px rgba(15, 39, 68, 0.05), 0 10px 30px rgba(15, 39, 68, 0.07);
+    --overlay-shadow: 0 18px 50px rgba(15, 39, 68, 0.18);
+    --field-shadow: 0 1px 2px rgba(15, 39, 68, 0.06);
+    --skeleton-animation: shimmer;
+
+    --scrollbar-thumb: color-mix(in oklch, var(--foreground) 15%, transparent);
+    --scrollbar-track: transparent;
+    --scrollbar-gutter: auto;
+    --scrollbar-width: thin;
+    --scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    --scrollbar: var(--scrollbar-thumb);
+
+    --font-display: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+
+  /* 松林：深松绿 + 青柠微光 */
+  [data-theme="forest"] {
+    color-scheme: dark;
+
+    --background: #0e1a15;
+    --foreground: #f0f7f2;
+    --surface: #15241d;
+    --surface-foreground: var(--foreground);
+    --surface-secondary: #1b2d24;
+    --surface-secondary-foreground: var(--foreground);
+    --surface-tertiary: #233a2e;
+    --surface-tertiary-foreground: var(--foreground);
+    --overlay: #1a2b23;
+    --overlay-foreground: var(--foreground);
+    --muted: #a9bdb1;
+    --default: #1f3228;
+    --default-foreground: #f0f7f2;
+
+    --accent: #a3e635;
+    --accent-foreground: #15240a;
+    --segment: #263a2e;
+    --segment-foreground: var(--foreground);
+
+    --success: #86efac;
+    --success-foreground: #052e16;
+    --warning: #fde047;
+    --warning-foreground: #2a1a00;
+    --danger: #fca5a5;
+    --danger-foreground: #3a0a0a;
+
+    --field-background: #15241d;
+    --field-foreground: #f0f7f2;
+    --field-placeholder: #8ca596;
+    --field-border: rgba(240, 247, 242, 0.18);
+
+    --border: rgba(240, 247, 242, 0.16);
+    --separator: rgba(240, 247, 242, 0.08);
+    --focus: #a3e635;
+    --link: #d9f99d;
+    --backdrop: rgba(0, 0, 0, 0.65);
+
+    --radius: 1rem;
+    --field-radius: 0.875rem;
+    --border-width: 1px;
+    --field-border-width: 1px;
+
+    --surface-shadow: 0 0 0 1px rgba(240, 247, 242, 0.06);
+    --overlay-shadow: 0 1px 0 rgba(240, 247, 242, 0.08) inset, 0 24px 60px rgba(0, 0, 0, 0.55);
+    --field-shadow: 0 0 0 1px rgba(240, 247, 242, 0.05);
+    --skeleton-animation: shimmer;
+
+    --scrollbar-thumb: color-mix(in oklch, var(--foreground) 18%, transparent);
+    --scrollbar-track: transparent;
+    --scrollbar-gutter: auto;
+    --scrollbar-width: thin;
+    --scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    --scrollbar: var(--scrollbar-thumb);
+
+    --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  }
+}
