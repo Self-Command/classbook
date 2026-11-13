@@ -54,7 +54,6 @@ export type MessageStatus = (typeof MESSAGE_STATUSES)[number];
 
 export const PAGE_SIZE_DEFAULT = 12;
 export const PAGE_SIZE_MAX = 50;
-export const MESSAGE_MAX_LENGTH = 500;
 export const BIO_MAX_LENGTH = 1000;
 export const MOTTO_MAX_LENGTH = 60;
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
@@ -118,10 +117,28 @@ export const profileUpdateSchema = z.object({
   phone: z.string().trim().max(30).nullable().optional(),
 });
 
+export const MESSAGE_MAX_LENGTH = 2000;
+export const MESSAGE_IMAGES_MAX = 9;
+
+export const uploadUrlSchema = z
+  .string()
+  .trim()
+  .regex(/^\/uploads\/[A-Za-z0-9-]+\.(jpg|jpeg|png|webp)$/, '图片地址无效');
+
 export const messageCreateSchema = z.object({
   content: z.string().trim().min(1, '留言不能为空').max(MESSAGE_MAX_LENGTH),
   toUserId: z.string().trim().min(1).nullable().optional(),
+  visibility: z.enum(['PUBLIC', 'PRIVATE']).optional(),
+  images: z.array(uploadUrlSchema).max(MESSAGE_IMAGES_MAX).optional(),
 });
+
+export const commentCreateSchema = z.object({
+  content: z.string().trim().min(1, '评论不能为空').max(1000),
+  parentId: z.string().trim().min(1).nullable().optional(),
+});
+
+export type MessageCreateInput = z.infer<typeof messageCreateSchema>;
+export type CommentCreateInput = z.infer<typeof commentCreateSchema>;
 
 export const albumCreateSchema = z.object({
   title: z.string().trim().min(1).max(40),
@@ -534,6 +551,8 @@ export interface MessageAuthorDto {
   disabled: boolean;
 }
 
+export type MessageVisibility = 'PUBLIC' | 'PRIVATE';
+
 export interface MessageDto {
   id: string;
   content: string;
@@ -542,6 +561,44 @@ export interface MessageDto {
   toUserId: string | null;
   author: MessageAuthorDto;
   toUser: { id: string; realName: string } | null;
+  images: string[];
+  visibility: MessageVisibility;
+  commentCount: number;
+  likeCount: number;
+  likedByMe: boolean;
+}
+
+export interface MessageCommentDto {
+  id: string;
+  messageId: string;
+  parentId: string | null;
+  content: string;
+  createdAt: string;
+  author: MessageAuthorDto;
+}
+
+export type NotificationType =
+  | 'PROFILE_MESSAGE'
+  | 'POST_COMMENT'
+  | 'COMMENT_REPLY'
+  | 'POST_LIKE'
+  | 'MENTION';
+
+export interface NotificationDto {
+  id: string;
+  type: NotificationType;
+  actor: MessageAuthorDto;
+  messageId: string | null;
+  commentId: string | null;
+  preview: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationListDto {
+  items: NotificationDto[];
+  unreadCount: number;
+  nextCursor: string | null;
 }
 
 export interface AlbumSummaryDto {
@@ -595,6 +652,7 @@ export interface AdminStatsDto {
   memberCount: number;
   messageCount: number;
   hiddenMessageCount: number;
+  privateMessageCount: number;
   photoCount: number;
   activeInviteCount: number;
   recentMessages: MessageDto[];

@@ -148,7 +148,7 @@ describe('留言', () => {
     expect(empty.status).toBe(400);
     expect(empty.body.error.code).toBe('VALIDATION_ERROR');
 
-    const tooLong = await agent.post('/api/messages').send({ content: 'a'.repeat(501) });
+    const tooLong = await agent.post('/api/messages').send({ content: 'a'.repeat(2001) });
     expect(tooLong.status).toBe(400);
     expect(tooLong.body.error.code).toBe('VALIDATION_ERROR');
   });

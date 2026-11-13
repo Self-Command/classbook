@@ -12,6 +12,8 @@ import { adminRouter } from './routes/admin';
 import { albumsRouter } from './routes/albums';
 import { authRouter } from './routes/auth';
 import { messagesRouter } from './routes/messages';
+import { notificationsRouter } from './routes/notifications';
+import { plazaRouter } from './routes/plaza';
 import { profilesRouter } from './routes/profiles';
 import { settingsRouter } from './routes/settings';
 import { timelineRouter } from './routes/timeline';
@@ -81,6 +83,8 @@ export function createApp() {
   app.use('/api/profiles', profilesRouter);
   app.use('/api/uploads', uploadsRouter);
   app.use('/api/messages', messagesRouter);
+  app.use('/api/plaza', plazaRouter);
+  app.use('/api/notifications', notificationsRouter);
   app.use('/api/albums', albumsRouter);
   app.use('/api/timeline', timelineRouter);
   app.use('/api/settings', settingsRouter);

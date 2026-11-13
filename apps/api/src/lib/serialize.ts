@@ -2,6 +2,8 @@ import type {
   Album,
   InviteCode,
   Message,
+  MessageComment,
+  Notification,
   Photo,
   Profile,
   SiteSetting,
@@ -14,7 +16,9 @@ import type {
   AlbumDto,
   AlbumSummaryDto,
   InviteCodeDto,
+  MessageCommentDto,
   MessageDto,
+  NotificationDto,
   PhotoDto,
   ProfileDto,
   PublicProfileDto,
@@ -29,6 +33,7 @@ export type UserWithProfile = User & { profile: Profile | null };
 export type MessageWithRelations = Message & {
   author: UserWithProfile;
   toUser: UserWithProfile | null;
+  likes?: { userId: string }[];
 };
 
 export function toProfileDto(profile: Profile): ProfileDto {
@@ -74,7 +79,10 @@ export function toUserDto(user: UserWithProfile): UserDto {
   };
 }
 
-export function toMessageDto(message: MessageWithRelations): MessageDto {
+export function toMessageDto(
+  message: MessageWithRelations,
+  viewerId?: string | null,
+): MessageDto {
   const authorDisabled = message.author.status === 'DISABLED';
   const author = authorDisabled
     ? {
@@ -105,6 +113,55 @@ export function toMessageDto(message: MessageWithRelations): MessageDto {
           realName: message.toUser.profile?.realName ?? message.toUser.username,
         }
       : null,
+    images: message.images ?? [],
+    visibility: message.visibility,
+    commentCount: message.commentCount,
+    likeCount: message.likeCount,
+    likedByMe:
+      Boolean(viewerId) &&
+      (message.likes?.some((like) => like.userId === viewerId) ?? false),
+  };
+}
+
+export type MessageCommentWithRelations = MessageComment & {
+  author: UserWithProfile;
+};
+
+export function toMessageCommentDto(comment: MessageCommentWithRelations): MessageCommentDto {
+  return {
+    id: comment.id,
+    messageId: comment.messageId,
+    parentId: comment.parentId,
+    content: comment.content,
+    createdAt: comment.createdAt.toISOString(),
+    author: {
+      id: comment.author.id,
+      realName: comment.author.profile?.realName ?? comment.author.username,
+      nickname: comment.author.profile?.nickname ?? null,
+      avatarUrl: comment.author.profile?.avatarUrl ?? null,
+      disabled: comment.author.status === 'DISABLED',
+    },
+  };
+}
+
+export function toNotificationDto(
+  notification: Notification & { actor: UserWithProfile },
+): NotificationDto {
+  return {
+    id: notification.id,
+    type: notification.type,
+    actor: {
+      id: notification.actor.id,
+      realName: notification.actor.profile?.realName ?? notification.actor.username,
+      nickname: notification.actor.profile?.nickname ?? null,
+      avatarUrl: notification.actor.profile?.avatarUrl ?? null,
+      disabled: notification.actor.status === 'DISABLED',
+    },
+    messageId: notification.messageId,
+    commentId: notification.commentId,
+    preview: notification.preview,
+    readAt: notification.readAt ? notification.readAt.toISOString() : null,
+    createdAt: notification.createdAt.toISOString(),
   };
 }
 

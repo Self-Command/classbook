@@ -57,6 +57,7 @@ adminRouter.get('/stats', async (_req, res) => {
     memberCount,
     messageCount,
     hiddenMessageCount,
+    privateMessageCount,
     photoCount,
     availableInvites,
     recentMessages,
@@ -64,6 +65,7 @@ adminRouter.get('/stats', async (_req, res) => {
     prisma.user.count({ where: { status: 'ACTIVE' } }),
     prisma.message.count(),
     prisma.message.count({ where: { status: 'HIDDEN' } }),
+    prisma.message.count({ where: { visibility: 'PRIVATE' } }),
     prisma.photo.count(),
     prisma.inviteCode.findMany({
       where: {
@@ -83,10 +85,11 @@ adminRouter.get('/stats', async (_req, res) => {
     memberCount,
     messageCount,
     hiddenMessageCount,
+    privateMessageCount,
     photoCount,
     activeInviteCount: availableInvites.filter((invite) => invite.usedCount < invite.maxUses)
       .length,
-    recentMessages: recentMessages.map(toMessageDto),
+    recentMessages: recentMessages.map((message) => toMessageDto(message)),
   });
 });
 
@@ -228,10 +231,14 @@ adminRouter.get('/messages', async (req, res) => {
   const { page, pageSize, skip, take } = getPagination(req.query);
   const status = messageStatusQuerySchema.parse(req.query.status);
 
-  const where: Prisma.MessageWhereInput = status ? { status } : {};
+  const where: Prisma.MessageWhereInput = {
+    visibility: 'PUBLIC',
+    ...(status ? { status } : {}),
+  };
 
-  const [total, messages] = await prisma.$transaction([
+  const [total, privateCount, messages] = await prisma.$transaction([
     prisma.message.count({ where }),
+    prisma.message.count({ where: { visibility: 'PRIVATE', status: 'VISIBLE' } }),
     prisma.message.findMany({
       where,
       include: messageInclude,
@@ -242,8 +249,9 @@ adminRouter.get('/messages', async (req, res) => {
   ]);
 
   res.status(200).json({
-    items: messages.map(toMessageDto),
+    items: messages.map((message) => toMessageDto(message)),
     total,
+    privateCount,
     page,
     pageSize,
   });
@@ -254,10 +262,13 @@ adminRouter.patch('/messages/:id', async (req, res) => {
 
   const existing = await prisma.message.findUnique({
     where: { id: req.params.id },
-    select: { id: true },
+    select: { id: true, visibility: true },
   });
   if (!existing) {
     throw new ApiError(404, 'NOT_FOUND', '留言不存在');
+  }
+  if (existing.visibility === 'PRIVATE') {
+    throw new ApiError(403, 'FORBIDDEN', '私密留言仅双方可见，管理员无法操作');
   }
 
   const message = await prisma.message.update({

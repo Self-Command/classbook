@@ -21,6 +21,7 @@ export default defineConfig({
       COOKIE_SECURE: 'false',
       WEB_ORIGIN: 'http://localhost:5173',
       ADMIN_ORIGIN: 'http://localhost:5174',
+      RATE_LIMIT_MULTIPLIER: '100',
     },
   },
 });

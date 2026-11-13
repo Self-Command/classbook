@@ -3,6 +3,7 @@ export type ApiErrorCode =
   | 'UNAUTHORIZED'
   | 'FORBIDDEN'
   | 'NOT_FOUND'
+  | 'BAD_REQUEST'
   | 'USERNAME_TAKEN'
   | 'INVALID_INVITE'
   | 'INVALID_CREDENTIALS'
