@@ -20,6 +20,9 @@ export interface CreateUserOptions {
 }
 
 export async function resetDb(): Promise<void> {
+  await prisma.notification.deleteMany();
+  await prisma.messageLike.deleteMany();
+  await prisma.messageComment.deleteMany();
   await prisma.message.deleteMany();
   await prisma.photo.deleteMany();
   await prisma.album.deleteMany();

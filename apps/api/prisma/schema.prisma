@@ -22,6 +22,19 @@ enum MessageStatus {
   HIDDEN
 }
 
+enum MessageVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum NotificationType {
+  PROFILE_MESSAGE
+  POST_COMMENT
+  COMMENT_REPLY
+  POST_LIKE
+  MENTION
+}
+
 model User {
   id           String      @id @default(cuid())
   username     String      @unique
@@ -35,6 +48,10 @@ model User {
   profile      Profile?
   messages     Message[]   @relation("author")
   received     Message[]   @relation("recipient")
+  comments     MessageComment[] @relation("CommentAuthor")
+  likes        MessageLike[]
+  notificationsReceived Notification[] @relation("NotificationRecipient")
+  notificationsSent     Notification[] @relation("NotificationActor")
   albums       Album[]
   timeline     TimelineEvent[]
   createdAt    DateTime    @default(now())
@@ -73,17 +90,73 @@ model Profile {
 }
 
 model Message {
-  id        String        @id @default(cuid())
-  authorId  String
-  author    User          @relation("author", fields: [authorId], references: [id], onDelete: Cascade)
-  toUserId  String?
-  toUser    User?         @relation("recipient", fields: [toUserId], references: [id], onDelete: SetNull)
-  content   String        @db.Text
-  status    MessageStatus @default(VISIBLE)
-  createdAt DateTime      @default(now())
+  id           String            @id @default(cuid())
+  authorId     String
+  author       User              @relation("author", fields: [authorId], references: [id], onDelete: Cascade)
+  toUserId     String?
+  toUser       User?             @relation("recipient", fields: [toUserId], references: [id], onDelete: SetNull)
+  content      String            @db.Text
+  images       String[]          @default([])
+  visibility   MessageVisibility @default(PUBLIC)
+  status       MessageStatus     @default(VISIBLE)
+  commentCount Int               @default(0)
+  likeCount    Int               @default(0)
+  editedAt     DateTime?
+  createdAt    DateTime          @default(now())
+  comments     MessageComment[]
+  likes        MessageLike[]
+  notifications Notification[]
 
   @@index([status, createdAt])
   @@index([toUserId, status, createdAt])
+  @@index([status, visibility, createdAt])
+}
+
+model MessageComment {
+  id        String          @id @default(cuid())
+  messageId String
+  message   Message         @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User            @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    MessageComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   MessageComment[] @relation("CommentReplies")
+  content   String          @db.Text
+  createdAt DateTime        @default(now())
+  notifications Notification[]
+
+  @@index([messageId, createdAt])
+  @@index([parentId, createdAt])
+}
+
+model MessageLike {
+  messageId String
+  userId    String
+  message   Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+
+  @@id([messageId, userId])
+  @@index([userId, createdAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actorId   String
+  actor     User             @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  messageId String?
+  message   Message?         @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  commentId String?
+  comment   MessageComment?  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  preview   String?          @db.Text
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt, createdAt])
+  @@index([userId, createdAt])
 }
 
 model Album {
