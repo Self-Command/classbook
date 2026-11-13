@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { SiteCopyProvider } from './lib/siteCopy';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import AlbumsPage from './pages/AlbumsPage';
 import ClassmateDetailPage from './pages/ClassmateDetailPage';
@@ -17,7 +18,8 @@ import WallPage from './pages/WallPage';
 export default function App() {
   return (
     <ErrorBoundary>
-      <Routes>
+      <SiteCopyProvider>
+        <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -33,7 +35,8 @@ export default function App() {
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Route>
-      </Routes>
+        </Routes>
+      </SiteCopyProvider>
     </ErrorBoundary>
   );
 }
