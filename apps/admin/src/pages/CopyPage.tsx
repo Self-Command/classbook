@@ -198,7 +198,7 @@ export function CopyPage() {
           groups.map(({ group, fields }) => (
             <details
               key={`${group}:${query ? 'search' : 'all'}`}
-              open={query.length > 0}
+              open={query.length > 0 ? true : undefined}
               className="group overflow-hidden rounded-2xl border border-separator bg-surface"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 select-none hover:bg-default/60 sm:px-5 [&::-webkit-details-marker]:hidden">
