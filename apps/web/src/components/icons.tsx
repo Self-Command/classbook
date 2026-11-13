@@ -224,3 +224,29 @@ export function IconQuote(props: IconProps) {
     </Svg>
   );
 }
+
+export function IconPencil(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      <path d="m15 5 4 4" />
+    </Svg>
+  );
+}
+
+export function IconStar(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.907l-3.797 3.696a2.123 2.123 0 0 0-.611 1.878l.904 5.124a.53.53 0 0 1-.771.56l-4.601-2.437a2.122 2.122 0 0 0-1.973 0L6.28 21.285a.53.53 0 0 1-.771-.56l.904-5.124a2.123 2.123 0 0 0-.611-1.878L2.005 10.05a.53.53 0 0 1 .294-.907l5.166-.756a2.123 2.123 0 0 0 1.595-1.16Z" />
+    </Svg>
+  );
+}
+
+export function IconPlus(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
+    </Svg>
+  );
+}

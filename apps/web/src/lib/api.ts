@@ -8,10 +8,13 @@ import {
   registerSchema,
 } from '@classbook/shared';
 import type {
+  AlbumCreateInput,
   AlbumDto,
   AlbumSummaryDto,
+  AlbumUpdateInput,
   MessageDto,
   Paginated,
+  PhotoDto,
   ProfileDto,
   PublicProfileDto,
   SiteSettingsDto,
@@ -273,6 +276,24 @@ export const albumsApi = {
   list: () => request<{ items: AlbumSummaryDto[] }>('/albums'),
   get: (id: string) =>
     request<{ album: AlbumDto }>(`/albums/${encodeURIComponent(id)}`),
+  create: (input: AlbumCreateInput) =>
+    request<{ album: AlbumDto }>('/albums', { method: 'POST', json: input }),
+  update: (id: string, input: AlbumUpdateInput) =>
+    request<{ album: AlbumDto }>(`/albums/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      json: input,
+    }),
+  remove: (id: string) =>
+    request<void>(`/albums/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  addPhotos: (id: string, photos: PhotoUpload[], caption?: string | null) =>
+    request<{ photos: PhotoDto[] }>(`/albums/${encodeURIComponent(id)}/photos`, {
+      method: 'POST',
+      json: { photos, caption: caption ?? undefined },
+    }),
+  removePhoto: (photoId: string) =>
+    request<void>(`/albums/photos/${encodeURIComponent(photoId)}`, {
+      method: 'DELETE',
+    }),
 };
 
 export const timelineApi = {
@@ -305,6 +326,39 @@ function uploadFile(path: string, file: File): Promise<{ url: string }> {
   return request<{ url: string }>(path, { method: 'POST', body: form });
 }
 
+export interface PhotoUpload {
+  url: string;
+  videoUrl: string | null;
+}
+
 export const uploadsApi = {
   avatar: (file: File) => uploadFile('/uploads/avatar', file),
+
+  async image(file: File): Promise<PhotoUpload> {
+    const form = new FormData();
+    form.append('file', file);
+    const data = await request<{ url: string; videoUrl?: string | null }>(
+      '/uploads/images',
+      { method: 'POST', body: form },
+    );
+    return { url: data.url, videoUrl: data.videoUrl ?? null };
+  },
+
+  async livePhoto(photo: File, video: File): Promise<PhotoUpload> {
+    const normalizedVideo =
+      video.type === 'video/mp4' || video.type === 'video/quicktime'
+        ? video
+        : new File([video], video.name || 'live-photo.mov', {
+            type: 'video/quicktime',
+          });
+
+    const form = new FormData();
+    form.append('photo', photo);
+    form.append('video', normalizedVideo);
+    const data = await request<{ url: string; videoUrl: string }>(
+      '/uploads/live-photo',
+      { method: 'POST', body: form },
+    );
+    return { url: data.url, videoUrl: data.videoUrl };
+  },
 };

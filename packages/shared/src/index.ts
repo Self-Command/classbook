@@ -134,6 +134,9 @@ export const albumUpdateSchema = z.object({
   coverUrl: z.string().trim().max(500).nullable().optional(),
 });
 
+export type AlbumCreateInput = z.infer<typeof albumCreateSchema>;
+export type AlbumUpdateInput = z.infer<typeof albumUpdateSchema>;
+
 export const photoItemSchema = z.object({
   url: z.string().trim().min(1).max(500),
   videoUrl: z.string().trim().max(500).nullable().optional(),
