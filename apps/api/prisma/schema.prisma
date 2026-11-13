@@ -136,5 +136,6 @@ model SiteSetting {
   imageCompressThresholdKb Int     @default(1024)
   imageMaxDimension        Int     @default(1920)
   imageQuality             Int     @default(82)
+  copy                     Json    @default("{}")
   updatedAt      DateTime @updatedAt
 }

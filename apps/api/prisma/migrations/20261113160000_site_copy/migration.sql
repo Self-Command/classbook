@@ -1,0 +1,1 @@
+ALTER TABLE "SiteSetting" ADD COLUMN "copy" JSONB NOT NULL DEFAULT '{}';

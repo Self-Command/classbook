@@ -449,12 +449,19 @@ adminRouter.patch('/settings', async (req, res) => {
     'slogan',
     'heroImageUrl',
   ]);
-  const data = settingsUpdateSchema.parse(body);
+  const { copy: copyPatch, ...data } = settingsUpdateSchema.parse(body);
+
+  const existing = await prisma.siteSetting.findUnique({ where: { id: 1 } });
+  const existingCopy =
+    existing?.copy && typeof existing.copy === 'object' && !Array.isArray(existing.copy)
+      ? existing.copy
+      : {};
+  const copy = copyPatch ? { ...existingCopy, ...copyPatch } : undefined;
 
   const settings = await prisma.siteSetting.upsert({
     where: { id: 1 },
-    update: data,
-    create: { id: 1, ...data },
+    update: { ...data, ...(copy ? { copy } : {}) },
+    create: { id: 1, ...data, ...(copy ? { copy } : {}) },
   });
 
   res.status(200).json(toSiteSettingsDto(settings));

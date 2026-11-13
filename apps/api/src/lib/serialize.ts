@@ -18,6 +18,7 @@ import type {
   PhotoDto,
   ProfileDto,
   PublicProfileDto,
+  SiteCopy,
   SiteSettingsDto,
   ThemeId,
   TimelineEventDto,
@@ -155,6 +156,11 @@ export function toTimelineEventDto(event: TimelineEvent): TimelineEventDto {
 }
 
 export function toSiteSettingsDto(setting: SiteSetting | null): SiteSettingsDto {
+  const storedCopy =
+    setting?.copy && typeof setting.copy === 'object' && !Array.isArray(setting.copy)
+      ? (setting.copy as Partial<SiteCopy>)
+      : {};
+
   return {
     className: setting?.className ?? '我们的班级',
     schoolName: setting?.schoolName ?? null,
@@ -166,7 +172,7 @@ export function toSiteSettingsDto(setting: SiteSetting | null): SiteSettingsDto 
     imageCompressThresholdKb: setting?.imageCompressThresholdKb ?? 1024,
     imageMaxDimension: setting?.imageMaxDimension ?? 1920,
     imageQuality: setting?.imageQuality ?? 82,
-    copy: DEFAULT_SITE_COPY,
+    copy: { ...DEFAULT_SITE_COPY, ...storedCopy },
   };
 }
 
