@@ -16,6 +16,7 @@ import { formatDate } from '@/lib/format';
 import { validateForm } from '@/lib/validation';
 import type { FieldErrors } from '@/lib/validation';
 import { FormField } from '@/components/ui/FormField';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import {
   FullPageLoading,
   PageContainer,
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/PageState';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { IconCamera, IconLock, IconLogout } from '@/components/ui/icons';
+import { useSiteCopy } from '@/lib/siteCopy';
 
 interface ProfileFormState {
   realName: string;
@@ -68,6 +70,7 @@ function orNull(value: string): string | null {
 
 export default function MePage() {
   const { user, refreshUser, logout } = useAuth();
+  const { copy } = useSiteCopy();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -271,8 +274,8 @@ export default function MePage() {
     <PageContainer className="space-y-8">
       <PageHeader
         eyebrow="写给自己"
-        title="我的档案"
-        description="让多年后的我们，还能认出彼此。"
+        title={copy.meTitle}
+        description={copy.meDescription}
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -475,7 +478,7 @@ export default function MePage() {
                       保存中…
                     </>
                   ) : (
-                    '保存档案'
+                    copy.meSaveButton
                   )}
                 </Button>
               </div>
@@ -511,16 +514,15 @@ export default function MePage() {
               <div>
                 <h2 className="flex items-center gap-2 font-display text-xl text-foreground">
                   <IconLock className="size-4 text-accent" />
-                  修改密码
+                  {copy.mePasswordTitle}
                 </h2>
                 <p className="mt-1 text-xs leading-5 text-muted">
                   修改成功后，其他设备上的登录会失效。
                 </p>
               </div>
 
-              <FormField
+              <PasswordInput
                 label="当前密码"
-                type="password"
                 value={password.currentPassword}
                 onChange={(value) => {
                   setPassword((current) => ({ ...current, currentPassword: value }));
@@ -531,9 +533,8 @@ export default function MePage() {
                 isDisabled={changingPassword}
               />
 
-              <FormField
+              <PasswordInput
                 label="新密码"
-                type="password"
                 value={password.newPassword}
                 onChange={(value) => {
                   setPassword((current) => ({ ...current, newPassword: value }));
@@ -546,9 +547,8 @@ export default function MePage() {
                 isDisabled={changingPassword}
               />
 
-              <FormField
+              <PasswordInput
                 label="确认新密码"
-                type="password"
                 value={password.confirmPassword}
                 onChange={(value) => {
                   setPassword((current) => ({ ...current, confirmPassword: value }));
@@ -576,7 +576,7 @@ export default function MePage() {
                     提交中…
                   </>
                 ) : (
-                  '更新密码'
+                  copy.mePasswordButton
                 )}
               </Button>
             </form>

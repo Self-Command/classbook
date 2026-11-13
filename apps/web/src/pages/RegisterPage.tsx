@@ -9,7 +9,9 @@ import { getSafeRedirect, withRedirect } from '@/lib/navigation';
 import { validateForm } from '@/lib/validation';
 import type { FieldErrors } from '@/lib/validation';
 import { FormField } from '@/components/ui/FormField';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { FullPageLoading, PageContainer } from '@/components/ui/PageState';
+import { useSiteCopy } from '@/lib/siteCopy';
 
 type InviteState = 'idle' | 'checking' | 'valid' | 'invalid';
 
@@ -17,6 +19,7 @@ const inviteHint = '向班长或管理员索取';
 
 export default function RegisterPage() {
   const { user, loading, register } = useAuth();
+  const { copy } = useSiteCopy();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = getSafeRedirect(searchParams.get('redirect'));
@@ -104,10 +107,8 @@ export default function RegisterPage() {
         <Card className="p-6 sm:p-8">
           <div>
             <p className="text-xs font-medium tracking-[0.24em] text-accent">加入我们</p>
-            <h1 className="mt-2 font-display text-3xl text-foreground">写下你的名字</h1>
-            <p className="mt-2 text-sm leading-6 text-muted">
-              使用管理员发放的邀请码注册，从此这一页也有你的故事。
-            </p>
+            <h1 className="mt-2 font-display text-3xl text-foreground">{copy.registerTitle}</h1>
+            <p className="mt-2 text-sm leading-6 text-muted">{copy.registerSubtitle}</p>
           </div>
 
           <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
@@ -123,7 +124,7 @@ export default function RegisterPage() {
             <div className="flex items-start gap-2">
               <FormField
                 className="min-w-0 flex-1"
-                label="邀请码"
+                label={copy.inviteLabel}
                 value={values.inviteCode}
                 onChange={(value) => {
                   const inviteCode = value.toUpperCase();
@@ -137,7 +138,7 @@ export default function RegisterPage() {
                 }}
                 error={errors.inviteCode || inviteError}
                 description={inviteHint}
-                placeholder="例如：AB3D7K9M"
+                placeholder={copy.invitePlaceholder}
                 autoComplete="off"
                 maxLength={64}
                 isRequired
@@ -165,7 +166,7 @@ export default function RegisterPage() {
             ) : null}
 
             <FormField
-              label="真实姓名"
+              label={copy.realNameLabel}
               value={values.realName}
               onChange={(value) => {
                 setValues((current) => ({ ...current, realName: value }));
@@ -181,7 +182,7 @@ export default function RegisterPage() {
             />
 
             <FormField
-              label="用户名"
+              label={copy.usernameLabel}
               value={values.username}
               onChange={(value) => {
                 setValues((current) => ({ ...current, username: value }));
@@ -196,9 +197,8 @@ export default function RegisterPage() {
               isDisabled={submitting}
             />
 
-            <FormField
-              label="密码"
-              type="password"
+            <PasswordInput
+              label={copy.passwordLabel}
               value={values.password}
               onChange={(value) => {
                 setValues((current) => ({ ...current, password: value }));
@@ -220,7 +220,7 @@ export default function RegisterPage() {
                   正在注册…
                 </>
               ) : (
-                '完成注册'
+                copy.registerButton
               )}
             </Button>
           </form>

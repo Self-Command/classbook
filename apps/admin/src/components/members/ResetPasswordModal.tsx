@@ -1,18 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { AdminMemberDto } from '@classbook/shared';
 import { resetPasswordSchema } from '@classbook/shared';
-import {
-  Button,
-  FieldError,
-  Input,
-  Label,
-  Modal,
-  Spinner,
-  TextField,
-  toast,
-} from '@heroui/react';
+import { Button, Modal, Spinner, toast } from '@heroui/react';
 import { admin, getErrorMessage } from '../../lib/api';
 import { fieldErrors } from '../../lib/validation';
+import { PasswordInput } from '../ui/PasswordInput';
 
 interface ResetPasswordModalProps {
   member: AdminMemberDto | null;
@@ -85,39 +77,35 @@ export function ResetPasswordModal({ member, onClose }: ResetPasswordModalProps)
           </Modal.Header>
           <Modal.Body>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-              <TextField
+              <PasswordInput
                 name="newPassword"
-                type="password"
+                label="新密码"
                 value={newPassword}
                 onChange={(value) => {
                   setNewPassword(value);
                   setErrors((current) => ({ ...current, newPassword: '' }));
                 }}
-                isInvalid={Boolean(errors.newPassword)}
+                placeholder="至少 8 位"
+                autoComplete="new-password"
+                error={errors.newPassword}
                 isDisabled={busy}
                 isRequired
-              >
-                <Label>新密码</Label>
-                <Input placeholder="至少 8 位" autoComplete="new-password" />
-                {errors.newPassword ? <FieldError>{errors.newPassword}</FieldError> : null}
-              </TextField>
+              />
 
-              <TextField
+              <PasswordInput
                 name="confirmPassword"
-                type="password"
+                label="确认新密码"
                 value={confirmPassword}
                 onChange={(value) => {
                   setConfirmPassword(value);
                   setErrors((current) => ({ ...current, confirmPassword: '' }));
                 }}
-                isInvalid={Boolean(errors.confirmPassword)}
+                placeholder="再次输入新密码"
+                autoComplete="new-password"
+                error={errors.confirmPassword}
                 isDisabled={busy}
                 isRequired
-              >
-                <Label>确认新密码</Label>
-                <Input placeholder="再次输入新密码" autoComplete="new-password" />
-                {errors.confirmPassword ? <FieldError>{errors.confirmPassword}</FieldError> : null}
-              </TextField>
+              />
 
               <p className="rounded-xl bg-default/60 px-3 py-2.5 text-xs leading-5 text-muted">
                 请通过安全渠道将新密码告知该成员。重置后对方需要重新登录。

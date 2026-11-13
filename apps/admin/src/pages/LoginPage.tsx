@@ -6,6 +6,7 @@ import { getErrorMessage } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { fieldErrors } from '../lib/validation';
 import { Icon } from '../components/ui/Icon';
+import { PasswordInput } from '../components/ui/PasswordInput';
 import { FullPageLoading } from '../components/ui/States';
 
 const FEATURES = [
@@ -149,22 +150,20 @@ export function LoginPage() {
                 {errors.username ? <FieldError>{errors.username}</FieldError> : null}
               </TextField>
 
-              <TextField
+              <PasswordInput
                 name="password"
-                type="password"
+                label="密码"
                 value={password}
                 onChange={(value) => {
                   setPassword(value);
                   setFormError(null);
                   setErrors((current) => ({ ...current, password: '' }));
                 }}
-                isInvalid={Boolean(errors.password)}
+                placeholder="请输入密码"
+                autoComplete="current-password"
+                error={errors.password}
                 isDisabled={submitting}
-              >
-                <Label>密码</Label>
-                <Input placeholder="请输入密码" autoComplete="current-password" />
-                {errors.password ? <FieldError>{errors.password}</FieldError> : null}
-              </TextField>
+              />
 
               <Button type="submit" fullWidth isPending={submitting}>
                 {({ isPending }) => (
