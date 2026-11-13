@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
+import { DEFAULT_SITE_COPY } from '@classbook/shared';
 import { prisma } from '../src/db';
 import {
   app,
@@ -235,6 +236,7 @@ describe('管理后台', () => {
       imageCompressThresholdKb: 1024,
       imageMaxDimension: 1920,
       imageQuality: 82,
+      copy: DEFAULT_SITE_COPY,
     });
 
     const publicSettings = await request(app).get('/api/settings/public');

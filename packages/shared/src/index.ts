@@ -469,6 +469,8 @@ export const settingsUpdateSchema = z.object({
   copy: siteCopySchema.optional(),
 });
 
+export type SettingsUpdateInput = z.infer<typeof settingsUpdateSchema>;
+
 export const memberUpdateSchema = z.object({
   status: z.enum(USER_STATUSES).optional(),
   role: z.enum(ROLES).optional(),

@@ -8,6 +8,7 @@ import type {
   TimelineEvent,
   User,
 } from '@prisma/client';
+import { DEFAULT_SITE_COPY } from '@classbook/shared';
 import type {
   AdminMemberDto,
   AlbumDto,
@@ -165,6 +166,7 @@ export function toSiteSettingsDto(setting: SiteSetting | null): SiteSettingsDto 
     imageCompressThresholdKb: setting?.imageCompressThresholdKb ?? 1024,
     imageMaxDimension: setting?.imageMaxDimension ?? 1920,
     imageQuality: setting?.imageQuality ?? 82,
+    copy: DEFAULT_SITE_COPY,
   };
 }
 

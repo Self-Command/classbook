@@ -9,6 +9,7 @@ import type {
   Paginated,
   PhotoDto,
   Role,
+  SettingsUpdateInput,
   SiteSettingsDto,
   TimelineEventDto,
   UserDto,
@@ -223,8 +224,6 @@ export interface InviteCreateInput {
   maxUses?: number;
   expiresAt?: string | null;
 }
-
-export type SettingsUpdateInput = Partial<SiteSettingsDto>;
 
 export const admin = {
   stats(): Promise<AdminStatsDto> {

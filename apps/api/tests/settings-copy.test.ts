@@ -7,6 +7,8 @@ describe('全站文案定义', () => {
       const value = DEFAULT_SITE_COPY[field.key];
       expect(value.trim().length).toBeGreaterThan(0);
       expect(value.length).toBeLessThanOrEqual(field.max);
+      const parsed = siteCopySchema.parse({ [field.key]: value });
+      expect(parsed[field.key]).toBe(value);
     }
   });
 
