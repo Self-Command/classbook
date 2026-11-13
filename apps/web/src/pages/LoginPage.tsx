@@ -9,10 +9,13 @@ import { getSafeRedirect, withRedirect } from '@/lib/navigation';
 import { validateForm } from '@/lib/validation';
 import type { FieldErrors } from '@/lib/validation';
 import { FormField } from '@/components/ui/FormField';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { FullPageLoading, PageContainer } from '@/components/ui/PageState';
+import { useSiteCopy } from '@/lib/siteCopy';
 
 export default function LoginPage() {
   const { user, loading, login } = useAuth();
+  const { copy } = useSiteCopy();
   const [searchParams] = useSearchParams();
   const redirect = getSafeRedirect(searchParams.get('redirect'));
 
@@ -60,10 +63,8 @@ export default function LoginPage() {
         <Card className="p-6 sm:p-8">
           <div>
             <p className="text-xs font-medium tracking-[0.24em] text-accent">欢迎回来</p>
-            <h1 className="mt-2 font-display text-3xl text-foreground">回到拾光</h1>
-            <p className="mt-2 text-sm leading-6 text-muted">
-              登录后，就能看到同学们的近况，也能继续写下新的留言。
-            </p>
+            <h1 className="mt-2 font-display text-3xl text-foreground">{copy.loginTitle}</h1>
+            <p className="mt-2 text-sm leading-6 text-muted">{copy.loginSubtitle}</p>
           </div>
 
           <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
@@ -77,7 +78,7 @@ export default function LoginPage() {
             ) : null}
 
             <FormField
-              label="用户名"
+              label={copy.usernameLabel}
               value={values.username}
               onChange={(value) => {
                 setValues((current) => ({ ...current, username: value }));
@@ -90,9 +91,8 @@ export default function LoginPage() {
               isDisabled={submitting}
             />
 
-            <FormField
-              label="密码"
-              type="password"
+            <PasswordInput
+              label={copy.passwordLabel}
               value={values.password}
               onChange={(value) => {
                 setValues((current) => ({ ...current, password: value }));
@@ -112,7 +112,7 @@ export default function LoginPage() {
                   登录中…
                 </>
               ) : (
-                '登录'
+                copy.loginButton
               )}
             </Button>
           </form>
