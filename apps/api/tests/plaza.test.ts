@@ -1,4 +1,4 @@
-import type { ClientRequest, IncomingMessage } from 'node:http';
+import type { IncomingMessage } from 'node:http';
 import { createServer, request as httpRequest } from 'node:http';
 import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -464,7 +464,6 @@ describe('广场与通知（plaza / notifications）', () => {
       const { port } = server.address() as { port: number };
 
       try {
-        let activeReq: ClientRequest | null = null;
         const stream = await new Promise<IncomingMessage>((resolve, reject) => {
           const req = httpRequest(
             {
@@ -475,7 +474,6 @@ describe('广场与通知（plaza / notifications）', () => {
             },
             resolve,
           );
-          activeReq = req;
           req.on('error', reject);
           req.end();
         });
@@ -496,7 +494,6 @@ describe('广场与通知（plaza / notifications）', () => {
 
         expect(receivedData).toContain('event: notification');
         expect(receivedData).toContain('PROFILE_MESSAGE');
-        activeReq?.destroy();
       } finally {
         server.closeAllConnections?.();
         await new Promise<void>((resolve) => server.close(() => resolve()));
