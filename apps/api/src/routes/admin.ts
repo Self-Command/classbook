@@ -318,7 +318,7 @@ adminRouter.patch('/albums/:id', async (req, res) => {
 adminRouter.delete('/albums/:id', async (req, res) => {
   const album = await prisma.album.findUnique({
     where: { id: req.params.id },
-    include: { photos: { select: { url: true } } },
+    include: { photos: { select: { url: true, videoUrl: true } } },
   });
   if (!album) {
     throw new ApiError(404, 'NOT_FOUND', '相册不存在');
@@ -326,7 +326,7 @@ adminRouter.delete('/albums/:id', async (req, res) => {
 
   await prisma.album.delete({ where: { id: album.id } });
 
-  const urls = album.photos.map((photo) => photo.url);
+  const urls = album.photos.flatMap((photo) => [photo.url, photo.videoUrl ?? null]);
   if (album.coverUrl) urls.push(album.coverUrl);
   await Promise.allSettled(urls.map((url) => deleteUploadFile(url)));
 
@@ -351,12 +351,15 @@ adminRouter.post('/albums/:id/photos', async (req, res) => {
   });
   const startOrder = aggregate._max.sortOrder === null ? 0 : aggregate._max.sortOrder + 1;
 
+  const items = data.photos ?? (data.urls ?? []).map((url) => ({ url, videoUrl: null }));
+
   const photos = await prisma.$transaction(
-    data.urls.map((url, index) =>
+    items.map((item, index) =>
       prisma.photo.create({
         data: {
           albumId: album.id,
-          url,
+          url: item.url,
+          videoUrl: item.videoUrl ?? null,
           caption: data.caption ?? null,
           sortOrder: startOrder + index,
         },
@@ -370,14 +373,14 @@ adminRouter.post('/albums/:id/photos', async (req, res) => {
 adminRouter.delete('/photos/:id', async (req, res) => {
   const photo = await prisma.photo.findUnique({
     where: { id: req.params.id },
-    select: { id: true, url: true },
+    select: { id: true, url: true, videoUrl: true },
   });
   if (!photo) {
     throw new ApiError(404, 'NOT_FOUND', '照片不存在');
   }
 
   await prisma.photo.delete({ where: { id: photo.id } });
-  await deleteUploadFile(photo.url);
+  await Promise.all([deleteUploadFile(photo.url), deleteUploadFile(photo.videoUrl)]);
 
   res.status(204).end();
 });

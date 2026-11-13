@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import type { PhotoDto } from '@classbook/shared';
 import { Button, Card, Chip, Modal, Spinner, toast } from '@heroui/react';
-import { albums, getErrorMessage, type AlbumCreateInput } from '../lib/api';
+import { albums, getErrorMessage, type AlbumCreateInput, type PhotoUpload } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { useAsyncData } from '../lib/useAsyncData';
 import { AlbumFormModal } from '../components/albums/AlbumFormModal';
@@ -87,8 +87,8 @@ export function AlbumDetailPage() {
     }
   };
 
-  const handleUploaded = async (urls: string[]) => {
-    await albums.addPhotos(albumId, { urls });
+  const handleUploaded = async (photos: PhotoUpload[]) => {
+    await albums.addPhotos(albumId, { photos });
     reload();
   };
 
@@ -177,6 +177,11 @@ export function AlbumDetailPage() {
                           loading="lazy"
                           className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                         />
+                        {photo.videoUrl ? (
+                          <span className="absolute left-2 top-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur">
+                            实况
+                          </span>
+                        ) : null}
                       </button>
 
                       {isCover ? (

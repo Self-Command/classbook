@@ -2,10 +2,13 @@
  * 页面重建音效：使用Web Audio实时合成，不依赖音频文件。
  * 首次用户手势后解锁；音量与静音状态由底部控制条维护并持久化。
  */
-export const AUDIO_STORAGE_KEY = "classbook:swarm-audio";
+export const AUDIO_STORAGE_KEY = "classbook:swarm-audio:v3";
+
+/** 输出增益：把合成音整体放大约 12 倍（+21.6dB），并用限幅器防止削波。 */
+export const OUTPUT_BOOST = 12;
 export const DEFAULT_AUDIO_STATE = Object.freeze({
   enabled: true,
-  volume: 0.55,
+  volume: 1,
 });
 
 let context = null;
@@ -107,8 +110,15 @@ function ensure() {
   if (!AudioContextClass) return null;
   context = new AudioContextClass();
   master = context.createGain();
-  master.gain.value = enabled ? volume : 0;
-  master.connect(context.destination);
+  master.gain.value = enabled ? volume * OUTPUT_BOOST : 0;
+  const limiter = context.createDynamicsCompressor();
+  limiter.threshold.value = -3;
+  limiter.knee.value = 0;
+  limiter.ratio.value = 12;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.25;
+  master.connect(limiter);
+  limiter.connect(context.destination);
   return context;
 }
 
@@ -177,6 +187,24 @@ function resume() {
 }
 
 /**
+ * 解锁音频并立刻给一次点击反馈；首次点击也能听到声音。
+ * @param {number} pan 声像位置，0到1。
+ * @returns {Promise<void>}
+ */
+async function unlock(pan = 0.5) {
+  const audio = ensure();
+  if (!audio) return;
+  if (audio.state !== "running") {
+    try {
+      await audio.resume();
+    } catch {
+      return;
+    }
+  }
+  click(pan);
+}
+
+/**
  * 设置静音状态并持久化。
  * @param {boolean} value 是否启用声音。
  * @returns {void}
@@ -185,7 +213,11 @@ function setEnabled(value) {
   enabled = Boolean(value);
   persist();
   if (master && context) {
-    master.gain.setTargetAtTime(enabled ? volume : 0, context.currentTime, 0.02);
+    master.gain.setTargetAtTime(
+      enabled ? volume * OUTPUT_BOOST : 0,
+      context.currentTime,
+      0.02,
+    );
   }
 }
 
@@ -198,7 +230,11 @@ function setVolume(value) {
   volume = clamp(Number(value) || 0);
   persist();
   if (master && context && enabled) {
-    master.gain.setTargetAtTime(volume, context.currentTime, 0.02);
+    master.gain.setTargetAtTime(
+      volume * OUTPUT_BOOST,
+      context.currentTime,
+      0.02,
+    );
   }
 }
 
@@ -272,6 +308,7 @@ function chord() {
 
 export const swarmAudio = {
   resume,
+  unlock,
   setEnabled,
   setVolume,
   getState,

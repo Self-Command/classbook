@@ -84,19 +84,22 @@ export function SwarmPageBuild() {
     return () => media.removeEventListener("change", sync);
   }, []);
 
-  // 浏览器只允许在用户手势后播放音频；首次点击/按键时懒解锁。
+  // 浏览器只允许在用户手势后播放音频；点击/按键时解锁并立即给出反馈音。
   useEffect(() => {
     if (!active) return undefined;
-    const unlock = () => {
-      swarmAudio.resume();
-      window.removeEventListener("pointerdown", unlock, true);
-      window.removeEventListener("keydown", unlock);
+    const onPointerDown = (event) => {
+      const pan = Math.min(
+        1,
+        Math.max(0, event.clientX / Math.max(window.innerWidth, 1)),
+      );
+      swarmAudio.unlock(pan);
     };
-    window.addEventListener("pointerdown", unlock, true);
-    window.addEventListener("keydown", unlock);
+    const onKeyDown = () => swarmAudio.unlock(0.5);
+    window.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("keydown", onKeyDown);
     return () => {
-      window.removeEventListener("pointerdown", unlock, true);
-      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, [active]);
 
@@ -364,13 +367,13 @@ export function SwarmPageBuild() {
   /** 静音或音量为0时统一显示为静音，避免图标与实际听感不一致。 */
   const silent = muted || volume < 0.01;
 
-  /** 切换静音；从0音量恢复时给一个可听但克制的默认音量。 */
+  /** 切换静音；从0音量恢复时直接拉满音量。 */
   const toggleMute = () => {
     swarmAudio.resume();
     if (silent) {
       if (volume < 0.01) {
-        swarmAudio.setVolume(0.55);
-        setVolume(0.55);
+        swarmAudio.setVolume(1);
+        setVolume(1);
       }
       swarmAudio.setEnabled(true);
       setMuted(false);

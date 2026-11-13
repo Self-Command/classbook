@@ -111,6 +111,7 @@ export function toPhotoDto(photo: Photo): PhotoDto {
     id: photo.id,
     albumId: photo.albumId,
     url: photo.url,
+    videoUrl: photo.videoUrl ?? null,
     caption: photo.caption,
     sortOrder: photo.sortOrder,
     createdAt: photo.createdAt.toISOString(),
@@ -160,6 +161,10 @@ export function toSiteSettingsDto(setting: SiteSetting | null): SiteSettingsDto 
     slogan: setting?.slogan ?? null,
     heroImageUrl: setting?.heroImageUrl ?? null,
     defaultTheme: (setting?.defaultTheme as ThemeId | undefined) ?? 'warm',
+    imageCompressEnabled: setting?.imageCompressEnabled ?? true,
+    imageCompressThresholdKb: setting?.imageCompressThresholdKb ?? 1024,
+    imageMaxDimension: setting?.imageMaxDimension ?? 1920,
+    imageQuality: setting?.imageQuality ?? 82,
   };
 }
 

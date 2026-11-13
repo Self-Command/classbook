@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { PhotoDto } from '@classbook/shared';
 import { Button, Modal } from '@heroui/react';
 import { formatDate } from '@/lib/format';
+import { LivePhotoView } from '@/components/content/LivePhotoView';
 import { IconChevronLeft, IconChevronRight, IconClose } from '@/components/icons';
 
 interface PhotoLightboxProps {
@@ -91,11 +92,21 @@ export function PhotoLightbox({
 
               {photo && (
                 <figure className="flex max-h-full w-full max-w-5xl flex-col items-center gap-3 px-4 py-16 sm:px-12">
-                  <img
-                    alt={photo.caption ?? albumTitle}
-                    className="max-h-[72dvh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
-                    src={photo.url}
-                  />
+                  {photo.videoUrl ? (
+                    <LivePhotoView
+                      className="w-full max-w-5xl overflow-hidden rounded-xl shadow-2xl"
+                      fit="contain"
+                      height="72dvh"
+                      photoSrc={photo.url}
+                      videoSrc={photo.videoUrl}
+                    />
+                  ) : (
+                    <img
+                      alt={photo.caption ?? albumTitle}
+                      className="max-h-[72dvh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
+                      src={photo.url}
+                    />
+                  )}
                   <figcaption className="max-w-2xl text-center text-xs leading-5 text-background/70">
                     {photo.caption && <span>{photo.caption}</span>}
                     {photo.caption && (

@@ -187,6 +187,9 @@ importers:
       '@heroui/styles':
         specifier: ^3.2.7
         version: 3.2.7(tailwindcss@4.3.5)
+      live-photo:
+        specifier: ^0.2.0
+        version: 0.2.0
       lucide-react:
         specifier: ^1.72.0
         version: 1.72.0(@types/react@19.3.0)(react@19.3.1)
@@ -309,6 +312,9 @@ importers:
       '@heroui/styles':
         specifier: ^3.2.7
         version: 3.2.7(tailwindcss@4.3.5)
+      live-photo:
+        specifier: ^0.2.0
+        version: 0.2.0
       lucide-react:
         specifier: ^1.72.0
         version: 1.72.0(@types/react@19.3.0)(react@19.3.1)
@@ -1734,6 +1740,10 @@ packages:
   lightningcss@1.33.0:
     resolution: {integrity: sha512-WkUDrojuJs0xkgGf2udWxa3yGBRxPtxUkB79i6aCZLRgc7PM8fZe9TosfPDcvEpQZbuFASnHYmRLBLUbmLOIIA==}
     engines: {node: '>= 12.0.0'}
+
+  live-photo@0.2.0:
+    resolution: {integrity: sha512-78vVTLJ3mtSNgnvadmxSFHNU4vqa/UwL2+z0lFOzwP5GV6RbjINzbVS9kZk+wYLlhFmKEJe1fm0Py3btORK6vg==}
+    engines: {node: '>=22.13.0', pnpm: '>=10.0.0'}
 
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
@@ -3584,6 +3594,8 @@ snapshots:
       lightningcss-linux-x64-musl: 1.33.0
       lightningcss-win32-arm64-msvc: 1.33.0
       lightningcss-win32-x64-msvc: 1.33.0
+
+  live-photo@0.2.0: {}
 
   lodash.includes@4.3.0: {}
 

@@ -134,10 +134,20 @@ export const albumUpdateSchema = z.object({
   coverUrl: z.string().trim().max(500).nullable().optional(),
 });
 
-export const photoAttachSchema = z.object({
-  urls: z.array(z.string().trim().min(1).max(500)).min(1).max(50),
-  caption: z.string().trim().max(100).nullable().optional(),
+export const photoItemSchema = z.object({
+  url: z.string().trim().min(1).max(500),
+  videoUrl: z.string().trim().max(500).nullable().optional(),
 });
+
+export const photoAttachSchema = z
+  .object({
+    urls: z.array(z.string().trim().min(1).max(500)).min(1).max(50).optional(),
+    photos: z.array(photoItemSchema).min(1).max(50).optional(),
+    caption: z.string().trim().max(100).nullable().optional(),
+  })
+  .refine((data) => Boolean(data.urls?.length || data.photos?.length), {
+    message: "请选择照片",
+  });
 
 export const timelineCreateSchema = z.object({
   date: z.coerce.date(),
@@ -156,6 +166,10 @@ export const settingsUpdateSchema = z.object({
   slogan: z.string().trim().max(100).nullable().optional(),
   heroImageUrl: z.string().trim().max(500).nullable().optional(),
   defaultTheme: themeIdSchema.optional(),
+  imageCompressEnabled: z.boolean().optional(),
+  imageCompressThresholdKb: z.number().int().min(128).max(20480).optional(),
+  imageMaxDimension: z.number().int().min(320).max(6000).optional(),
+  imageQuality: z.number().int().min(40).max(100).optional(),
 });
 
 export const memberUpdateSchema = z.object({
@@ -241,6 +255,7 @@ export interface PhotoDto {
   id: string;
   albumId: string;
   url: string;
+  videoUrl: string | null;
   caption: string | null;
   sortOrder: number;
   createdAt: string;
@@ -267,6 +282,10 @@ export interface SiteSettingsDto {
   slogan: string | null;
   heroImageUrl: string | null;
   defaultTheme?: ThemeId;
+  imageCompressEnabled: boolean;
+  imageCompressThresholdKb: number;
+  imageMaxDimension: number;
+  imageQuality: number;
 }
 
 export interface AdminStatsDto {

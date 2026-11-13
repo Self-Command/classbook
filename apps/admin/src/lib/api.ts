@@ -196,8 +196,13 @@ export interface AlbumUpdateInput {
   coverUrl?: string | null;
 }
 
+export interface PhotoUpload {
+  url: string;
+  videoUrl?: string | null;
+}
+
 export interface PhotoAttachInput {
-  urls: string[];
+  photos: PhotoUpload[];
   caption?: string | null;
 }
 
@@ -390,13 +395,29 @@ export const timeline = {
 };
 
 export const uploads = {
-  async image(file: File): Promise<string> {
+  async image(file: File): Promise<PhotoUpload> {
     const form = new FormData();
     form.append('file', file);
-    const data = await request<{ url: string }>('/uploads/images', {
+    const data = await request<{ url: string; videoUrl?: string | null }>('/uploads/images', {
       method: 'POST',
       body: form,
     });
-    return data.url;
+    return { url: data.url, videoUrl: data.videoUrl ?? null };
+  },
+
+  async livePhoto(photo: File, video: File): Promise<PhotoUpload> {
+    const normalizedVideo =
+      video.type === 'video/mp4' || video.type === 'video/quicktime'
+        ? video
+        : new File([video], video.name || 'live-photo.mov', { type: 'video/quicktime' });
+
+    const form = new FormData();
+    form.append('photo', photo);
+    form.append('video', normalizedVideo);
+    const data = await request<{ url: string; videoUrl: string }>('/uploads/live-photo', {
+      method: 'POST',
+      body: form,
+    });
+    return { url: data.url, videoUrl: data.videoUrl };
   },
 };

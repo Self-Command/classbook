@@ -1,17 +1,38 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { ALLOWED_IMAGE_MIME, IMAGE_MAX_BYTES } from '@classbook/shared';
 import { Button, ProgressBar, Spinner } from '@heroui/react';
-import { getErrorMessage, uploads } from '../../lib/api';
+import { admin, getErrorMessage, uploads, type PhotoUpload } from '../../lib/api';
+import { compressImage, DEFAULT_IMAGE_COMPRESSION, type ImageCompressionConfig } from '../../lib/compressImage';
 import { Icon } from './Icon';
 import { toast } from '@heroui/react';
 
 const ACCEPT = ALLOWED_IMAGE_MIME.join(',');
+const MULTI_ACCEPT = `${ACCEPT},video/mp4,video/quicktime,.mov`;
 const ALLOWED_MIME: readonly string[] = ALLOWED_IMAGE_MIME;
+
+const MAX_SOURCE_BYTES = 30 * 1024 * 1024;
 
 function validateFile(file: File): string | null {
   if (!ALLOWED_MIME.includes(file.type)) return '仅支持 JPG / PNG / WebP 格式';
-  if (file.size > IMAGE_MAX_BYTES) return '图片大小不能超过 5MB';
+  if (file.size > MAX_SOURCE_BYTES) return '图片大小不能超过 30MB';
   return null;
+}
+
+let compressionConfigPromise: Promise<ImageCompressionConfig> | null = null;
+
+function getCompressionConfig(): Promise<ImageCompressionConfig> {
+  if (!compressionConfigPromise) {
+    compressionConfigPromise = admin
+      .settings()
+      .then((settings) => ({
+        enabled: settings.imageCompressEnabled,
+        thresholdKb: settings.imageCompressThresholdKb,
+        maxDimension: settings.imageMaxDimension,
+        quality: settings.imageQuality,
+      }))
+      .catch(() => DEFAULT_IMAGE_COMPRESSION);
+  }
+  return compressionConfigPromise;
 }
 
 interface ImageUploaderProps {
@@ -53,8 +74,10 @@ export function ImageUploader({
 
     setUploading(true);
     try {
-      const url = await uploads.image(file);
-      onChange(url);
+      const config = await getCompressionConfig();
+      const prepared = await compressImage(file, config, IMAGE_MAX_BYTES);
+      const uploaded = await uploads.image(prepared);
+      onChange(uploaded.url);
       toast.success('图片上传成功');
     } catch (error) {
       toast.danger(getErrorMessage(error));
@@ -137,8 +160,25 @@ export function ImageUploader({
   );
 }
 
+const VIDEO_MIME = ['video/mp4', 'video/quicktime'];
+const VIDEO_MAX_BYTES = 80 * 1024 * 1024;
+
+function baseName(name: string): string {
+  return name.replace(/\.[^.]+$/, '').toLowerCase();
+}
+
+async function isMotionPhoto(file: File): Promise<boolean> {
+  try {
+    const buffer = await file.slice(0, 262144).arrayBuffer();
+    const head = new TextDecoder('latin1').decode(buffer);
+    return head.includes('MotionPhoto') || head.includes('MicroVideo');
+  } catch {
+    return false;
+  }
+}
+
 interface MultiImageUploaderProps {
-  onUploaded: (urls: string[]) => Promise<void> | void;
+  onUploaded: (photos: PhotoUpload[]) => Promise<void> | void;
   disabled?: boolean;
   label?: string;
 }
@@ -157,12 +197,23 @@ export function MultiImageUploader({
     event.target.value = '';
     if (files.length === 0) return;
 
-    const valid: File[] = [];
+    const images: File[] = [];
+    const videos = new Map<string, File>();
     const invalid: string[] = [];
+
     for (const file of files) {
+      if (VIDEO_MIME.includes(file.type) || /\.(mp4|mov)$/i.test(file.name)) {
+        if (file.size > VIDEO_MAX_BYTES) {
+          invalid.push(`${file.name}（视频不能超过 80MB）`);
+        } else {
+          videos.set(baseName(file.name), file);
+        }
+        continue;
+      }
+
       const problem = validateFile(file);
       if (problem) invalid.push(`${file.name}（${problem}）`);
-      else valid.push(file);
+      else images.push(file);
     }
 
     if (invalid.length > 0) {
@@ -171,20 +222,40 @@ export function MultiImageUploader({
       toast.danger(`${preview}${suffix} 未上传`);
     }
 
-    if (valid.length === 0) return;
+    if (images.length === 0) {
+      if (videos.size > 0) toast.danger('请同时选择实况照片的 JPG 图片');
+      return;
+    }
 
     setUploading(true);
-    setProgress({ done: 0, total: valid.length });
-    const urls: string[] = [];
+    setProgress({ done: 0, total: images.length });
+    const uploadedPhotos: PhotoUpload[] = [];
 
     try {
-      for (let index = 0; index < valid.length; index += 1) {
-        const url = await uploads.image(valid[index]);
-        urls.push(url);
-        setProgress({ done: index + 1, total: valid.length });
+      const config = await getCompressionConfig();
+      for (let index = 0; index < images.length; index += 1) {
+        const image = images[index];
+        const pairedVideo = videos.get(baseName(image.name));
+
+        if (pairedVideo) {
+          uploadedPhotos.push(await uploads.livePhoto(image, pairedVideo));
+          videos.delete(baseName(image.name));
+        } else if (await isMotionPhoto(image)) {
+          uploadedPhotos.push(await uploads.image(image));
+        } else {
+          const prepared = await compressImage(image, config, IMAGE_MAX_BYTES);
+          uploadedPhotos.push(await uploads.image(prepared));
+        }
+
+        setProgress({ done: index + 1, total: images.length });
       }
-      await onUploaded(urls);
-      toast.success(`已上传 ${urls.length} 张照片`);
+
+      if (videos.size > 0) {
+        toast.danger(`${videos.size} 个视频未找到同名图片，已跳过`);
+      }
+
+      await onUploaded(uploadedPhotos);
+      toast.success(`已上传 ${uploadedPhotos.length} 张照片`);
     } catch (error) {
       toast.danger(getErrorMessage(error));
     } finally {
@@ -202,7 +273,7 @@ export function MultiImageUploader({
       <input
         ref={inputRef}
         type="file"
-        accept={ACCEPT}
+        accept={MULTI_ACCEPT}
         multiple
         onChange={handleInput}
         className="hidden"
@@ -225,7 +296,7 @@ export function MultiImageUploader({
               : label}
         </span>
         <span className="mt-1 text-xs text-muted">
-          可一次选择多张，支持 JPG / PNG / WebP，单张不超过 5MB
+          支持 JPG / PNG / WebP，iPhone 实况照片可同时选择 JPG 与同名 MOV
         </span>
         {uploading && progress ? (
           <ProgressBar

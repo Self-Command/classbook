@@ -9,7 +9,8 @@ import {
   profileUpdateSchema,
 } from '@classbook/shared';
 import type { ProfileDto } from '@classbook/shared';
-import { authApi, getErrorMessage, profilesApi, uploadsApi } from '@/lib/api';
+import { authApi, getErrorMessage, profilesApi, settingsApi, uploadsApi } from '@/lib/api';
+import { compressImage } from '@/lib/compressImage';
 import { useAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/format';
 import { validateForm } from '@/lib/validation';
@@ -167,14 +168,24 @@ export default function MePage() {
       toast.danger('仅支持 JPG、PNG 或 WebP 图片');
       return;
     }
-    if (file.size > AVATAR_MAX_BYTES) {
-      toast.danger('头像不能超过 2MB');
-      return;
-    }
-
     setAvatarBusy(true);
     try {
-      const uploaded = await uploadsApi.avatar(file);
+      const settings = await settingsApi.getPublic();
+      const prepared = await compressImage(
+        file,
+        {
+          enabled: settings.imageCompressEnabled,
+          thresholdKb: settings.imageCompressThresholdKb,
+          maxDimension: settings.imageMaxDimension,
+          quality: settings.imageQuality,
+        },
+        AVATAR_MAX_BYTES,
+      );
+      if (prepared.size > AVATAR_MAX_BYTES) {
+        toast.danger('头像压缩后仍超过 2MB，请换一张图片');
+        return;
+      }
+      const uploaded = await uploadsApi.avatar(prepared);
       const result = await profilesApi.updateMe({ avatarUrl: uploaded.url });
       setValues((current) => ({
         ...current,

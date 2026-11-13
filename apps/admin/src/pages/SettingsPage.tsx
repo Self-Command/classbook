@@ -21,6 +21,12 @@ import { ErrorBlock, LoadingBlock } from '../components/ui/States';
 
 const FORM_ID = 'site-settings-form';
 
+function clampNumber(value: string, min: number, max: number, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(parsed)));
+}
+
 export function SettingsPage() {
   const { data, loading, error, reload, setData } = useAsyncData(() => admin.settings(), []);
   const [className, setClassName] = useState('');
@@ -29,6 +35,10 @@ export function SettingsPage() {
   const [slogan, setSlogan] = useState('');
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
   const [defaultTheme, setDefaultTheme] = useState<ThemeId>('warm');
+  const [imageCompressEnabled, setImageCompressEnabled] = useState(true);
+  const [imageThresholdKb, setImageThresholdKb] = useState('1024');
+  const [imageMaxDimension, setImageMaxDimension] = useState('1920');
+  const [imageQuality, setImageQuality] = useState('82');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -40,6 +50,10 @@ export function SettingsPage() {
     setSlogan(data.slogan ?? '');
     setHeroImageUrl(data.heroImageUrl);
     setDefaultTheme(data.defaultTheme ?? 'warm');
+    setImageCompressEnabled(data.imageCompressEnabled ?? true);
+    setImageThresholdKb(String(data.imageCompressThresholdKb ?? 1024));
+    setImageMaxDimension(String(data.imageMaxDimension ?? 1920));
+    setImageQuality(String(data.imageQuality ?? 82));
   }, [data]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -63,6 +77,10 @@ export function SettingsPage() {
       slogan: slogan.trim() || null,
       heroImageUrl: heroImageUrl || null,
       defaultTheme,
+      imageCompressEnabled,
+      imageCompressThresholdKb: clampNumber(imageThresholdKb, 128, 20480, 1024),
+      imageMaxDimension: clampNumber(imageMaxDimension, 320, 6000, 1920),
+      imageQuality: clampNumber(imageQuality, 40, 100, 82),
     });
 
     if (!parsed.success) {
@@ -219,6 +237,56 @@ export function SettingsPage() {
 
           <Card className="p-4 sm:p-5">
             <div className="mb-4">
+              <h2 className="font-display text-lg font-semibold text-foreground">图片上传</h2>
+              <p className="mt-0.5 text-xs text-muted">
+                超过阈值的图片会先在浏览器里压缩再上传，节省流量与等待时间。
+              </p>
+            </div>
+
+            <label className="mb-4 flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-[var(--color-accent)]"
+                checked={imageCompressEnabled}
+                onChange={(event) => setImageCompressEnabled(event.target.checked)}
+                disabled={saving}
+              />
+              启用上传前自动压缩
+            </label>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <TextField
+                name="imageThresholdKb"
+                value={imageThresholdKb}
+                onChange={setImageThresholdKb}
+                isDisabled={saving || !imageCompressEnabled}
+              >
+                <Label>触发阈值（KB）</Label>
+                <Input type="number" min={128} max={20480} placeholder="1024" />
+              </TextField>
+              <TextField
+                name="imageMaxDimension"
+                value={imageMaxDimension}
+                onChange={setImageMaxDimension}
+                isDisabled={saving || !imageCompressEnabled}
+              >
+                <Label>最大边长（px）</Label>
+                <Input type="number" min={320} max={6000} placeholder="1920" />
+              </TextField>
+              <TextField
+                name="imageQuality"
+                value={imageQuality}
+                onChange={setImageQuality}
+                isDisabled={saving || !imageCompressEnabled}
+              >
+                <Label>压缩质量（%）</Label>
+                <Input type="number" min={40} max={100} placeholder="82" />
+              </TextField>
+            </div>
+          </Card>
+
+          <Card className="p-4 sm:p-5">
+            <div className="mb-4">
               <h2 className="font-display text-lg font-semibold text-foreground">首页封面</h2>
               <p className="mt-0.5 text-xs text-muted">
                 建议使用横向照片，展示站首页会以整幅背景呈现。
@@ -228,7 +296,7 @@ export function SettingsPage() {
               value={heroImageUrl}
               onChange={setHeroImageUrl}
               label="封面图"
-              hint="支持 JPG / PNG / WebP，单张不超过 5MB；移除后展示站使用纯色背景。"
+              hint="支持 JPG / PNG / WebP，大图会自动压缩；移除后展示站使用纯色背景。"
               disabled={saving}
             />
             {errors.heroImageUrl ? (
