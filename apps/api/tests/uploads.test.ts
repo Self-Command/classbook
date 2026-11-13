@@ -5,7 +5,6 @@ import request from 'supertest';
 import { AVATAR_MAX_BYTES } from '@classbook/shared';
 import {
   app,
-  createAdmin,
   createUser,
   loginAgent,
   resetDb,
@@ -86,25 +85,23 @@ describe('上传', () => {
     expect(response.body.error.code).toBe('VALIDATION_ERROR');
   });
 
-  it('图片上传仅管理员可用，且允许 2–5MB 的文件', async () => {
+  it('普通成员可上传相册图片，且允许 2–5MB 的文件', async () => {
     await createUser({ username: 'member' });
-    await createAdmin();
-
     const memberAgent = await loginAgent('member');
+
     const memberResponse = await memberAgent
       .post('/api/uploads/images')
       .attach('file', PNG_BYTES, { filename: 'image.png', contentType: 'image/png' });
-    expect(memberResponse.status).toBe(403);
-    expect(memberResponse.body.error.code).toBe('FORBIDDEN');
+    expect(memberResponse.status).toBe(201);
+    expect(memberResponse.body.url).toMatch(/^\/uploads\/[0-9a-f-]+\.png$/);
 
-    const adminAgent = await loginAgent('admin');
-    const adminResponse = await adminAgent
+    const largeResponse = await memberAgent
       .post('/api/uploads/images')
       .attach('file', Buffer.alloc(AVATAR_MAX_BYTES + 1024, 1), {
         filename: 'large.jpg',
         contentType: 'image/jpeg',
       });
-    expect(adminResponse.status).toBe(201);
-    expect(adminResponse.body.url).toMatch(/^\/uploads\/[0-9a-f-]+\.jpg$/);
+    expect(largeResponse.status).toBe(201);
+    expect(largeResponse.body.url).toMatch(/^\/uploads\/[0-9a-f-]+\.jpg$/);
   });
 });

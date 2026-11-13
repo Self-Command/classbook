@@ -5,7 +5,7 @@ import { Router } from "express";
 import { ALLOWED_IMAGE_MIME } from "@classbook/shared";
 import { config } from "../config";
 import { ApiError } from "../lib/api-error";
-import { requireAdmin, requireAuth } from "../lib/auth";
+import { requireAuth } from "../lib/auth";
 import { avatarUpload, extensionForMime, imageUpload, livePhotoUpload } from "../lib/upload";
 import { extractMotionPhotoVideo } from "../lib/motion-photo";
 
@@ -43,7 +43,6 @@ uploadsRouter.post("/avatar", requireAuth, avatarUpload.single("file"), async (r
 uploadsRouter.post(
   "/images",
   requireAuth,
-  requireAdmin,
   imageUpload.single("file"),
   async (req, res) => {
     const file = requireUploadedFile(req.file);
@@ -59,7 +58,6 @@ uploadsRouter.post(
 uploadsRouter.post(
   "/live-photo",
   requireAuth,
-  requireAdmin,
   livePhotoUpload.fields([
     { name: "photo", maxCount: 1 },
     { name: "video", maxCount: 1 },
