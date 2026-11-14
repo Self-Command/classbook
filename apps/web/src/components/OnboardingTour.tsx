@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 
 const ONBOARDED_PREFIX = 'classbook:onboarded:';
 const SWARM_PLAY_EVENT = 'classbook:swarm-play';
+const SWARM_FINISH_EVENT = 'classbook:swarm-finish';
 const SWARM_FINISHED_EVENT = 'classbook:swarm-finished';
 const FALLBACK_DELAY_MS = 9000;
 
@@ -47,6 +48,8 @@ export function OnboardingTour() {
 
     let cancelled = false;
     let timer = 0;
+    let finishTimer = 0;
+    let tourTimer = 0;
 
     const markOnboarded = () => {
       try {
@@ -112,6 +115,9 @@ export function OnboardingTour() {
 
     const startTour = () => {
       if (cancelled) return;
+      window.clearTimeout(timer);
+      window.clearTimeout(finishTimer);
+      if (driverRef.current) return;
       driverRef.current = driver({
         showProgress: true,
         allowClose: true,
@@ -134,7 +140,8 @@ export function OnboardingTour() {
     const onFinished = () => {
       if (cancelled) return;
       window.clearTimeout(timer);
-      window.setTimeout(startTour, 320);
+      window.clearTimeout(finishTimer);
+      tourTimer = window.setTimeout(startTour, 320);
     };
 
     window.addEventListener(SWARM_FINISHED_EVENT, onFinished, { once: true });
@@ -145,6 +152,10 @@ export function OnboardingTour() {
       window.dispatchEvent(
         new CustomEvent(SWARM_PLAY_EVENT, { detail: { reason: 'first-login' } }),
       );
+      // 首次登录的动画只演示一小段，随后自动收尾进入引导；用户提前点「完成」则立即进入。
+      finishTimer = window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent(SWARM_FINISH_EVENT));
+      }, 6000);
       // 动画因异常没有结束时兜底进入引导，避免用户一直卡在等待状态。
       timer = window.setTimeout(startTour, FALLBACK_DELAY_MS);
     }
@@ -152,6 +163,8 @@ export function OnboardingTour() {
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      window.clearTimeout(finishTimer);
+      window.clearTimeout(tourTimer);
       window.removeEventListener(SWARM_FINISHED_EVENT, onFinished);
       driverRef.current?.destroy();
     };

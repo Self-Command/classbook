@@ -397,8 +397,13 @@ export function SwarmPageBuild() {
       if (event?.detail?.reason === "auto" && !autoRef.current) return;
       requestBuild();
     };
+    const onFinish = () => finishRef.current?.();
     window.addEventListener("classbook:swarm-play", onPlay);
-    return () => window.removeEventListener("classbook:swarm-play", onPlay);
+    window.addEventListener("classbook:swarm-finish", onFinish);
+    return () => {
+      window.removeEventListener("classbook:swarm-play", onPlay);
+      window.removeEventListener("classbook:swarm-finish", onFinish);
+    };
   }, [requestBuild]);
 
   /** 切换自动播放偏好并持久化；默认关闭，只有用户显式开启才随路由自动重建。 */
