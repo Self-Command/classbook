@@ -131,6 +131,10 @@ export function OnboardingTour() {
         prevBtnText: '上一步',
         doneBtnText: '开始使用',
         progressText: '{{current}} / {{total}}',
+        closeBtnLabel: '跳过引导',
+        // driver.js 默认会禁用高亮元素之外的所有交互，导致引导期间页面按钮完全点不动。
+        // 这里把常用控件列为可交互元素，保留引导的视觉引导，同时让页面照常可用。
+        allowedElements: 'button, a, input, textarea, select, [role="button"]',
         onDestroyStarted: () => {
           markOnboarded();
           driverRef.current?.destroy();

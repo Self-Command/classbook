@@ -18,3 +18,11 @@
   font-size: 13px;
   line-height: 1.6;
 }
+
+/*
+ * 引导期间允许交互的控件保持在暗色遮罩之下：遮罩本身不接收指针事件，
+ * 因此这些控件依旧可以点击，同时不会抢走高亮区域的视觉焦点。
+ */
+body.driver-active {
+  --driver-allowed-z-index: 9999;
+}
