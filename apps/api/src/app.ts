@@ -72,9 +72,9 @@ export function createApp() {
     express.static(path.resolve(config.uploadDir), {
       index: false,
       dotfiles: 'deny',
-      maxAge: 3600 * 1000,
+      maxAge: 30 * 24 * 3600 * 1000,
       setHeaders(res) {
-        res.setHeader('Cache-Control', 'private, max-age=3600');
+        res.setHeader('Cache-Control', 'private, max-age=2592000, immutable');
       },
     }),
   );
