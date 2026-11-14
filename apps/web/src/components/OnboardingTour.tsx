@@ -129,6 +129,10 @@ export function OnboardingTour() {
         prevBtnText: '上一步',
         doneBtnText: '开始使用',
         progressText: '{{current}} / {{total}}',
+        onDestroyStarted: () => {
+          markOnboarded();
+          driverRef.current?.destroy();
+        },
         onDestroyed: () => {
           driverRef.current = null;
           markOnboarded();
