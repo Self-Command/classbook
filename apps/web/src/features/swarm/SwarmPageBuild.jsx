@@ -74,7 +74,8 @@ export function SwarmPageBuild() {
   const [build, setBuild] = useState(null);
   // 减少动态效果时完全不挂载重建层与氛围光标，也不锁定滚动。
   const [active, setActive] = useState(() => !prefersReducedMotion());
-  const [preparing, setPreparing] = useState(() => !prefersReducedMotion());
+  // 幕布只在真正开始重建时出现；常驻 bar 模式下页面默认直接可见。
+  const [preparing, setPreparing] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [runId, setRunId] = useState(0);
   const [auto, setAuto] = useState(readAutoplay);
