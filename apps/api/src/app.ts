@@ -55,7 +55,18 @@ export function createApp() {
             select: { heroImageUrl: true },
           });
           const publicUrl = `/uploads${req.path}`;
-          if (setting?.heroImageUrl === publicUrl) {
+          const heroUrl = setting?.heroImageUrl;
+          const heroVariants = heroUrl
+            ? [
+                heroUrl,
+                heroUrl.replace(/\.webp$/i, '-1024.avif'),
+                heroUrl.replace(/\.webp$/i, '-1280.avif'),
+                heroUrl.replace(/\.webp$/i, '-1024.webp'),
+                heroUrl.replace(/\.webp$/i, '-1280.webp'),
+              ]
+            : [];
+          if (heroVariants.includes(publicUrl)) {
+            res.locals.publicHero = true;
             next();
             return;
           }
@@ -74,7 +85,8 @@ export function createApp() {
       dotfiles: 'deny',
       maxAge: 30 * 24 * 3600 * 1000,
       setHeaders(res) {
-        res.setHeader('Cache-Control', 'private, max-age=2592000, immutable');
+        const visibility = res.locals.publicHero ? 'public' : 'private';
+        res.setHeader('Cache-Control', `${visibility}, max-age=2592000, immutable`);
       },
     }),
   );

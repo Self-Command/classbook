@@ -31,6 +31,9 @@ function getInviteStatus(invite: InviteCodeDto): InviteStatus {
   return { label: '有效', color: 'success', active: true };
 }
 
+const inviteLink = (code: string) =>
+  `${window.location.origin}/register?invite=${encodeURIComponent(code)}`;
+
 export function InvitesPage() {
   const { data, loading, error, reload } = useAsyncData(() => admin.invites(), []);
   const [createOpen, setCreateOpen] = useState(false);
@@ -45,6 +48,15 @@ export function InvitesPage() {
     try {
       await copyText(code);
       toast.success(`邀请码 ${code} 已复制`);
+    } catch (cause) {
+      toast.danger(getErrorMessage(cause));
+    }
+  };
+
+  const handleCopyLink = async (code: string) => {
+    try {
+      await copyText(inviteLink(code));
+      toast.success('邀请链接已复制，发给同学即可直接注册');
     } catch (cause) {
       toast.danger(getErrorMessage(cause));
     }
@@ -104,6 +116,10 @@ export function InvitesPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button size="sm" onPress={() => handleCopyLink(latestInvite.code)}>
+                <Icon name="link" className="size-3.5" />
+                复制邀请链接
+              </Button>
               <Button size="sm" variant="secondary" onPress={() => handleCopy(latestInvite.code)}>
                 <Icon name="copy" className="size-3.5" />
                 复制邀请码
@@ -183,6 +199,15 @@ export function InvitesPage() {
                             >
                               <Icon name="copy" className="size-3.5" />
                             </Button>
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="ghost"
+                              aria-label={`复制邀请链接 ${invite.code}`}
+                              onPress={() => handleCopyLink(invite.code)}
+                            >
+                              <Icon name="link" className="size-3.5" />
+                            </Button>
                           </div>
                         </Table.Cell>
                         <Table.Cell>
@@ -223,6 +248,14 @@ export function InvitesPage() {
                         </Table.Cell>
                         <Table.Cell>
                           <div className="flex items-center justify-end gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onPress={() => handleCopyLink(invite.code)}
+                            >
+                              <Icon name="link" className="size-3.5" />
+                              复制链接
+                            </Button>
                             <Button
                               size="sm"
                               variant="secondary"

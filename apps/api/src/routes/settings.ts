@@ -6,5 +6,6 @@ export const settingsRouter = Router();
 
 settingsRouter.get('/public', async (_req, res) => {
   const settings = await prisma.siteSetting.findUnique({ where: { id: 1 } });
+  res.setHeader('Cache-Control', 'public, max-age=60');
   res.status(200).json(toSiteSettingsDto(settings));
 });

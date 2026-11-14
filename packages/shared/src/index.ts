@@ -180,10 +180,47 @@ export const timelineCreateSchema = z.object({
 
 export const timelineUpdateSchema = timelineCreateSchema.partial();
 
+export const LOGO_MODES = [
+  { id: 'text', label: '文字', hint: '1–4 个字，适合班级简称' },
+  { id: 'emoji', label: '表情', hint: '从预设里挑一个，也可以自定义' },
+  { id: 'image', label: '图片', hint: '建议上传透明底 PNG / WebP' },
+] as const;
+
+export type LogoMode = (typeof LOGO_MODES)[number]['id'];
+
+export const LOGO_EMOJIS = [
+  '🎓',
+  '📚',
+  '✏️',
+  '🏫',
+  '🌿',
+  '🌸',
+  '☀️',
+  '🌙',
+  '⭐',
+  '✨',
+  '🕊️',
+  '🎈',
+  '🍃',
+  '📖',
+  '🖋️',
+  '💫',
+] as const;
+
 export const SITE_COPY_FIELDS = [
   { key: 'siteName', group: '品牌', label: '站点名称', max: 40, fallback: '拾光同学录' },
   { key: 'siteEmoji', group: '品牌', label: '站点符号', max: 4, fallback: '拾' },
   { key: 'logoText', group: '品牌', label: 'Logo 文字', max: 4, fallback: '拾' },
+  { key: 'logoMode', group: '品牌', label: 'Logo 形式', max: 10, fallback: 'text' },
+  { key: 'logoEmoji', group: '品牌', label: 'Logo 表情', max: 8, fallback: '🎓' },
+  {
+    key: 'logoImageUrl',
+    group: '品牌',
+    label: 'Logo 图片',
+    max: 500,
+    fallback: '',
+    optional: true,
+  },
   { key: 'tabTitle', group: '品牌', label: '浏览器标题', max: 60, fallback: '拾光同学录' },
   {
     key: 'footerText',

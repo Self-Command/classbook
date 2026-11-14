@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -13,12 +13,18 @@ import { getErrorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useSiteCopy } from '@/lib/siteCopy';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
-import { OnboardingTour } from '@/components/OnboardingTour';
-import { SwarmPageBuild } from '@/features/swarm/index.js';
 import '@/features/swarm/styles/index.css';
+import { SiteLogo } from './SiteLogo';
 import { UserAvatar } from './ui/UserAvatar';
 import { ThemeSwitcher } from './theme/ThemeSwitcher';
 import { IconLogout, IconMenu, IconUser } from './ui/icons';
+
+const OnboardingTour = lazy(() =>
+  import('@/components/OnboardingTour').then((module) => ({ default: module.OnboardingTour })),
+);
+const SwarmPageBuild = lazy(() =>
+  import('@/features/swarm/index.js').then((module) => ({ default: module.SwarmPageBuild })),
+);
 
 function navLinkClass({ isActive }: { isActive: boolean }): string {
   return [
@@ -80,9 +86,7 @@ export function Layout() {
       <header className="sticky top-0 z-40 border-b border-separator bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-[1120px] items-center gap-3 px-4 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent font-display text-base text-accent-foreground shadow-sm">
-              {copy.logoText}
-            </span>
+            <SiteLogo copy={copy} />
             <span className="min-w-0 leading-tight">
               <span className="block font-display text-base text-foreground sm:text-lg">
                 {copy.siteName}
@@ -253,8 +257,14 @@ export function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <SwarmPageBuild />
-      <OnboardingTour />
+      <Suspense fallback={null}>
+        <SwarmPageBuild />
+      </Suspense>
+      {user ? (
+        <Suspense fallback={null}>
+          <OnboardingTour />
+        </Suspense>
+      ) : null}
 
       <footer className="border-t border-separator bg-default/40">
         <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-2 px-4 py-8 text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">

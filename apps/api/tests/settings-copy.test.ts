@@ -8,8 +8,12 @@ describe('全站文案定义', () => {
   it('每个文案键都有非空默认值且不超过最大长度', () => {
     for (const field of SITE_COPY_FIELDS) {
       const value = DEFAULT_SITE_COPY[field.key];
-      expect(value.trim().length).toBeGreaterThan(0);
-      expect(value.length).toBeLessThanOrEqual(field.max);
+      if ('optional' in field && field.optional) {
+        expect(value.length).toBeLessThanOrEqual(field.max);
+      } else {
+        expect(value.trim().length).toBeGreaterThan(0);
+        expect(value.length).toBeLessThanOrEqual(field.max);
+      }
       const parsed = siteCopySchema.parse({ [field.key]: value });
       expect(parsed[field.key]).toBe(value);
     }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   DEFAULT_SITE_COPY,
   SITE_COPY_FIELDS,
@@ -27,6 +28,8 @@ interface CopyGroup {
   group: string;
   fields: (typeof SITE_COPY_FIELDS)[number][];
 }
+
+const LOGO_FIELD_KEYS = new Set(['logoText', 'logoMode', 'logoEmoji', 'logoImageUrl']);
 
 function groupFields(fields: CopyGroup['fields']): CopyGroup[] {
   const groups: CopyGroup[] = [];
@@ -68,7 +71,7 @@ export function CopyPage() {
 
   const filteredFields = useMemo(
     () =>
-      SITE_COPY_FIELDS.filter((field) => {
+      SITE_COPY_FIELDS.filter((field) => !LOGO_FIELD_KEYS.has(field.key)).filter((field) => {
         if (!query) return true;
         return (
           field.key.toLowerCase().includes(query) ||
@@ -181,6 +184,23 @@ export function CopyPage() {
           </div>
         </div>
       </Card>
+
+      <div className="mt-4 flex flex-col gap-2 rounded-2xl border border-separator bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2.5">
+          <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent">
+            <Icon name="image" className="size-4" />
+          </span>
+          <p className="text-xs leading-5 text-muted">
+            Logo 已改为独立设计，支持文字、表情和图片三种形式，不再显示背景圆圈。
+          </p>
+        </div>
+        <Link
+          to="/settings"
+          className="shrink-0 text-xs font-medium text-accent underline-offset-4 hover:underline"
+        >
+          去站点设置
+        </Link>
+      </div>
 
       <div className="mt-4 space-y-3">
         {groups.length === 0 ? (

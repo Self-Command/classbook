@@ -1,14 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { TimelineEventDto } from '@classbook/shared';
-import { Card } from '@heroui/react';
-import { timelineApi } from '@/lib/api';
+import { Button, Card } from '@heroui/react';
+import { getErrorMessage, timelineApi } from '@/lib/api';
 import { useAsyncData } from '@/lib/useAsyncData';
+import { useAuth } from '@/lib/auth';
 import { useSiteCopy } from '@/lib/siteCopy';
 import { formatDate, timelineYear } from '@/lib/format';
-import { IconCalendar, IconClock } from '@/components/icons';
+import { IconCalendar, IconClock, IconPlus } from '@/components/icons';
 import { EmptyPanel, ErrorPanel } from '@/components/content/ContentStates';
 import { TimelineSkeleton } from '@/components/content/ContentSkeletons';
 import { PageShell } from '@/components/content/PageShell';
+import {
+  TimelineFormModal,
+  type TimelineFormValues,
+} from '@/components/content/TimelineFormModal';
+import { useToast } from '@/components/Toast';
 
 interface YearGroup {
   year: number | null;
@@ -17,7 +23,28 @@ interface YearGroup {
 
 export default function TimelinePage() {
   const { copy } = useSiteCopy();
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const { data, loading, error, reload } = useAsyncData(() => timelineApi.list(), []);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const handleCreate = async (values: TimelineFormValues) => {
+    setBusy(true);
+    setFormError('');
+    try {
+      const result = await timelineApi.create(values);
+      showToast(`「${result.event.title}」已加入时间线`);
+      setCreateOpen(false);
+      reload();
+    } catch (cause) {
+      setFormError(getErrorMessage(cause));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const groups = useMemo<YearGroup[]>(() => {
     if (!data) return [];
@@ -43,6 +70,14 @@ export default function TimelinePage() {
 
   return (
     <PageShell
+      action={
+        user ? (
+          <Button onPress={() => setCreateOpen(true)} size="sm" variant="secondary">
+            <IconPlus className="size-4" />
+            添加事件
+          </Button>
+        ) : undefined
+      }
       description={copy.timelineDescription}
       eyebrow="拾光纪事"
       title={copy.timelineTitle}
@@ -136,6 +171,16 @@ export default function TimelinePage() {
           ))}
         </div>
       )}
+
+      <TimelineFormModal
+        busy={busy}
+        error={formError}
+        onClose={() => {
+          if (!busy) setCreateOpen(false);
+        }}
+        onSubmit={handleCreate}
+        open={createOpen}
+      />
     </PageShell>
   );
 }

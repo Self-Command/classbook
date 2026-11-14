@@ -1,5 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { settingsUpdateSchema, type ThemeId } from '@classbook/shared';
+import {
+  LOGO_MODES,
+  settingsUpdateSchema,
+  type LogoMode,
+  type ThemeId,
+} from '@classbook/shared';
 import {
   Button,
   Card,
@@ -15,6 +20,7 @@ import { admin, getErrorMessage } from '../lib/api';
 import { useAsyncData } from '../lib/useAsyncData';
 import { fieldErrors } from '../lib/validation';
 import { ImageUploader } from '../components/ui/ImageUploader';
+import { LogoDesigner, type LogoDesignValue } from '../components/ui/LogoDesigner';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ThemeDefaultPicker } from '../components/theme/ThemeDefaultPicker';
 import { ErrorBlock, LoadingBlock } from '../components/ui/States';
@@ -34,6 +40,12 @@ export function SettingsPage() {
   const [graduationYear, setGraduationYear] = useState('');
   const [slogan, setSlogan] = useState('');
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [logo, setLogo] = useState<LogoDesignValue>({
+    mode: 'text',
+    text: '拾',
+    emoji: '🎓',
+    imageUrl: null,
+  });
   const [defaultTheme, setDefaultTheme] = useState<ThemeId>('warm');
   const [imageCompressEnabled, setImageCompressEnabled] = useState(true);
   const [imageThresholdKb, setImageThresholdKb] = useState('1024');
@@ -49,6 +61,15 @@ export function SettingsPage() {
     setGraduationYear(data.graduationYear ? String(data.graduationYear) : '');
     setSlogan(data.slogan ?? '');
     setHeroImageUrl(data.heroImageUrl);
+    const storedMode = LOGO_MODES.some((mode) => mode.id === data.copy.logoMode)
+      ? (data.copy.logoMode as LogoMode)
+      : 'text';
+    setLogo({
+      mode: storedMode,
+      text: data.copy.logoText || '拾',
+      emoji: data.copy.logoEmoji || '🎓',
+      imageUrl: data.copy.logoImageUrl || null,
+    });
     setDefaultTheme(data.defaultTheme ?? 'warm');
     setImageCompressEnabled(data.imageCompressEnabled ?? true);
     setImageThresholdKb(String(data.imageCompressThresholdKb ?? 1024));
@@ -70,6 +91,11 @@ export function SettingsPage() {
       return;
     }
 
+    if (logo.mode === 'image' && !logo.imageUrl) {
+      setErrors({ logoImageUrl: '请先上传 Logo 图片，或切换到文字 / 表情形式' });
+      return;
+    }
+
     const parsed = settingsUpdateSchema.safeParse({
       className: className.trim(),
       schoolName: schoolName.trim() || null,
@@ -81,6 +107,12 @@ export function SettingsPage() {
       imageCompressThresholdKb: clampNumber(imageThresholdKb, 128, 20480, 1024),
       imageMaxDimension: clampNumber(imageMaxDimension, 320, 6000, 1920),
       imageQuality: clampNumber(imageQuality, 40, 100, 82),
+      copy: {
+        logoMode: logo.mode,
+        logoText: logo.text.trim() || '拾',
+        logoEmoji: logo.emoji.trim() || '🎓',
+        logoImageUrl: logo.imageUrl ?? '',
+      },
     });
 
     if (!parsed.success) {
@@ -194,6 +226,26 @@ export function SettingsPage() {
                 </TextField>
               </div>
             </div>
+          </Card>
+
+          <Card className="p-4 sm:p-5">
+            <div className="mb-4">
+              <h2 className="font-display text-lg font-semibold text-foreground">Logo 设计</h2>
+              <p className="mt-0.5 text-xs text-muted">
+                三种形式任选，展示时不再加背景圆圈；切换后保存即可生效。
+              </p>
+            </div>
+            <LogoDesigner
+              value={logo}
+              onChange={(next) => {
+                setLogo(next);
+                if (errors.logoImageUrl) {
+                  setErrors((current) => ({ ...current, logoImageUrl: '' }));
+                }
+              }}
+              disabled={saving}
+              imageError={errors.logoImageUrl}
+            />
           </Card>
 
           <Card className="p-4 sm:p-5">

@@ -23,13 +23,14 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = getSafeRedirect(searchParams.get('redirect'));
+  const inviteParam = (searchParams.get('invite') ?? '').trim().toUpperCase().slice(0, 64);
 
-  const [values, setValues] = useState({
-    inviteCode: '',
+  const [values, setValues] = useState(() => ({
+    inviteCode: inviteParam,
     realName: '',
     username: '',
     password: '',
-  });
+  }));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState('');
   const [inviteState, setInviteState] = useState<InviteState>('idle');
@@ -137,7 +138,7 @@ export default function RegisterPage() {
                   }
                 }}
                 error={errors.inviteCode || inviteError}
-                description={inviteHint}
+                description={inviteParam ? '已从邀请链接自动填入' : inviteHint}
                 placeholder={copy.invitePlaceholder}
                 autoComplete="off"
                 maxLength={64}

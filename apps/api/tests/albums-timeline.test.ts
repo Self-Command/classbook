@@ -154,7 +154,25 @@ describe('时间线', () => {
     expect(missing.status).toBe(404);
   });
 
-  it('普通用户不能创建时间线事件', async () => {
+  it('普通用户可以通过时间线接口创建事件', async () => {
+    await createUser({ username: 'member' });
+    const agent = await loginAgent('member');
+
+    const response = await agent.post('/api/timeline').send({
+      date: '2024-06-01T12:00:00.000Z',
+      title: '同学聚会',
+      description: '在操场边集合',
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body.event.title).toBe('同学聚会');
+
+    const list = await agent.get('/api/timeline');
+    expect(list.status).toBe(200);
+    expect(list.body.items.map((item: { title: string }) => item.title)).toContain('同学聚会');
+  });
+
+  it('普通用户不能通过管理员接口创建时间线事件', async () => {
     await createUser({ username: 'member' });
     const agent = await loginAgent('member');
 

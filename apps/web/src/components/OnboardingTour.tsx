@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { driver, type DriveStep } from 'driver.js';
+import type { DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import './OnboardingTour.css';
 import { useAuth } from '@/lib/auth';
@@ -33,7 +33,7 @@ export function OnboardingTour() {
   const { user, loading } = useAuth();
   const userId = user?.id;
   const startedRef = useRef(false);
-  const driverRef = useRef<ReturnType<typeof driver> | null>(null);
+  const driverRef = useRef<{ drive: () => void; destroy: () => void } | null>(null);
 
   useEffect(() => {
     if (loading || !userId || startedRef.current) return;
@@ -114,11 +114,13 @@ export function OnboardingTour() {
       });
     }
 
-    const startTour = () => {
+    const startTour = async () => {
       if (cancelled) return;
       window.clearTimeout(timer);
       window.clearTimeout(finishTimer);
       if (driverRef.current) return;
+      const { driver } = await import('driver.js');
+      if (cancelled || driverRef.current) return;
       driverRef.current = driver({
         showProgress: true,
         allowClose: true,

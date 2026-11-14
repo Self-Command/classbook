@@ -153,14 +153,28 @@ function LandingContent({ settings }: { settings: SiteSettingsDto }) {
             </p>
           </div>
           {settings.heroImageUrl ? (
-            <img
-              src={settings.heroImageUrl}
-              alt={`${settings.className}的封面`}
-              className="absolute inset-0 size-full object-cover"
-              onError={(event) => {
-                event.currentTarget.style.display = 'none';
-              }}
-            />
+            <picture className="absolute inset-0 size-full">
+              <source
+                srcSet={`${settings.heroImageUrl.replace(/\.webp$/i, '-1024.avif')} 1024w, ${settings.heroImageUrl.replace(/\.webp$/i, '-1280.avif')} 1280w`}
+                sizes="(min-width: 768px) 1120px, 100vw"
+                type="image/avif"
+              />
+              <source
+                srcSet={`${settings.heroImageUrl.replace(/\.webp$/i, '-1024.webp')} 1024w, ${settings.heroImageUrl.replace(/\.webp$/i, '-1280.webp')} 1280w`}
+                sizes="(min-width: 768px) 1120px, 100vw"
+                type="image/webp"
+              />
+              <img
+                src={settings.heroImageUrl}
+                alt={`${settings.className}的封面`}
+                className="size-full object-cover"
+                fetchPriority="high"
+                decoding="async"
+                onError={(event) => {
+                  event.currentTarget.style.display = 'none';
+                }}
+              />
+            </picture>
           ) : null}
         </div>
       </Card>

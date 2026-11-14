@@ -1,11 +1,11 @@
-import { z } from 'zod';
-import {
-  inviteValidateSchema,
+import type { z } from 'zod';
+import type {
   loginSchema,
   messageCreateSchema,
   passwordChangeSchema,
   profileUpdateSchema,
   registerSchema,
+  timelineCreateSchema,
 } from '@classbook/shared';
 import type {
   AlbumCreateInput,
@@ -26,6 +26,11 @@ import type {
 } from '@classbook/shared';
 
 const API_PREFIX = '/api';
+
+export type TimelineCreateInput = Omit<
+  z.input<typeof timelineCreateSchema>,
+  'date'
+> & { date: string | Date };
 
 export const UNAUTHORIZED_EVENT = 'classbook:unauthorized';
 
@@ -221,10 +226,9 @@ export const authApi = {
   changePassword: (input: PasswordChangeInput) =>
     request<void>('/auth/password', { method: 'PATCH', json: input }),
   validateInvite: (code: string) => {
-    const parsed = inviteValidateSchema.safeParse({ code });
     return request<{ valid: boolean }>('/auth/invite/validate', {
       method: 'POST',
-      json: parsed.success ? parsed.data : { code },
+      json: { code },
     });
   },
 };
@@ -359,6 +363,11 @@ export const notificationsApi = {
 
 export const timelineApi = {
   list: () => request<{ items: TimelineEventDto[] }>('/timeline'),
+  create: (input: TimelineCreateInput) =>
+    request<{ event: TimelineEventDto }>('/timeline', {
+      method: 'POST',
+      json: input,
+    }),
 };
 
 let publicSettingsCache: SiteSettingsDto | null = null;
