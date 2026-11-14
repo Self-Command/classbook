@@ -29,12 +29,14 @@ function isVisible(selector: string): boolean {
  */
 export function OnboardingTour() {
   const { user, loading } = useAuth();
+  const userId = user?.id;
   const startedRef = useRef(false);
+  const driverRef = useRef<ReturnType<typeof driver> | null>(null);
 
   useEffect(() => {
-    if (loading || !user || startedRef.current) return;
+    if (loading || !userId || startedRef.current) return;
 
-    const storageKey = ONBOARDED_PREFIX + user.id;
+    const storageKey = ONBOARDED_PREFIX + userId;
     try {
       if (window.localStorage.getItem(storageKey)) return;
     } catch {
@@ -60,7 +62,7 @@ export function OnboardingTour() {
       popover: {
         title: '欢迎来到拾光同学录',
         description:
-          '花 30 秒认识几个常用入口。引导随时可以跳过，之后想再看可以在昵称菜单里重新打开。',
+          '花 30 秒认识几个常用入口。这次引导只会在首次登录时出现一次，随时可以点右上角跳过。',
       },
     });
 
@@ -110,7 +112,7 @@ export function OnboardingTour() {
 
     const startTour = () => {
       if (cancelled) return;
-      const driverObj = driver({
+      driverRef.current = driver({
         showProgress: true,
         allowClose: true,
         overlayColor: 'rgb(0 0 0 / 55%)',
@@ -120,10 +122,13 @@ export function OnboardingTour() {
         prevBtnText: '上一步',
         doneBtnText: '开始使用',
         progressText: '{{current}} / {{total}}',
-        onDestroyed: markOnboarded,
+        onDestroyed: () => {
+          driverRef.current = null;
+          markOnboarded();
+        },
         steps,
       });
-      driverObj.drive();
+      driverRef.current.drive();
     };
 
     const onFinished = () => {
@@ -148,8 +153,9 @@ export function OnboardingTour() {
       cancelled = true;
       window.clearTimeout(timer);
       window.removeEventListener(SWARM_FINISHED_EVENT, onFinished);
+      driverRef.current?.destroy();
     };
-  }, [user, loading]);
+  }, [userId, loading]);
 
   return null;
 }
