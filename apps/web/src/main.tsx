@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { Toast } from '@heroui/react';
 import App from './App';
 import { AuthProvider } from './lib/auth';
+import { NotificationsProvider } from './lib/notifications';
 import { ThemeProvider } from './lib/theme';
 import './index.css';
 
@@ -12,8 +13,10 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
-          <App />
-          <Toast.Provider placement="top end" />
+          <NotificationsProvider>
+            <App />
+            <Toast.Provider placement="top end" />
+          </NotificationsProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

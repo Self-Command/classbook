@@ -60,7 +60,9 @@ profilesRouter.get('/', async (req, res) => {
   ]);
 
   res.status(200).json({
-    items: users.flatMap((user) => (user.profile ? [toPublicProfileDto(user.profile)] : [])),
+    items: users.flatMap((user) =>
+      user.profile ? [toPublicProfileDto(user.profile, user.username)] : [],
+    ),
     total,
     page,
     pageSize,

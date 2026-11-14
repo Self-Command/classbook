@@ -12,6 +12,7 @@ import {
 import { getErrorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useSiteCopy } from '@/lib/siteCopy';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { SwarmPageBuild } from '@/features/swarm/index.js';
 import '@/features/swarm/styles/index.css';
 import { UserAvatar } from './ui/UserAvatar';
@@ -47,7 +48,7 @@ export function Layout() {
   const navItems = [
     { to: '/', label: copy.navHome, end: true },
     { to: '/classmates', label: copy.navClassmates },
-    { to: '/wall', label: copy.navPlaza },
+    { to: '/plaza', label: copy.navPlaza },
     { to: '/albums', label: copy.navAlbums },
     { to: '/timeline', label: copy.navTimeline },
   ];
@@ -108,6 +109,10 @@ export function Layout() {
             {loading ? (
               <Skeleton className="h-9 w-24 rounded-full" />
             ) : user ? (
+              <div className="flex items-center gap-1.5">
+                <div className="hidden sm:block">
+                  <NotificationBell />
+                </div>
               <Dropdown>
                 <Button
                   variant="ghost"
@@ -133,6 +138,7 @@ export function Layout() {
                   </Dropdown.Menu>
                 </Dropdown.Popover>
               </Dropdown>
+              </div>
             ) : (
               <div className="hidden items-center gap-2 sm:flex">
                 <Button variant="ghost" onPress={() => navigate('/login')}>
@@ -154,6 +160,14 @@ export function Layout() {
                       <Drawer.Heading className="text-lg">浏览同学录</Drawer.Heading>
                     </Drawer.Header>
                     <Drawer.Body>
+                      {user && (
+                        <div className="mb-2 flex items-center justify-between rounded-2xl bg-default p-2.5">
+                          <span className="text-xs font-medium text-muted">
+                            {copy.notificationsTitle}
+                          </span>
+                          <NotificationBell onNavigate={() => mobileMenu.close()} />
+                        </div>
+                      )}
                       <nav className="flex flex-col gap-1" aria-label="移动端导航">
                         {navItems.map((item) => (
                           <NavLink

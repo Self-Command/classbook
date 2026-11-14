@@ -13,7 +13,7 @@ import { ErrorBlock } from '../components/ui/States';
 interface StatConfig {
   key: keyof Pick<
     AdminStatsDto,
-    'memberCount' | 'messageCount' | 'hiddenMessageCount' | 'photoCount' | 'activeInviteCount'
+    'memberCount' | 'messageCount' | 'hiddenMessageCount' | 'privateMessageCount' | 'photoCount' | 'activeInviteCount'
   >;
   label: string;
   hint: string;
@@ -23,8 +23,9 @@ interface StatConfig {
 
 const STATS: StatConfig[] = [
   { key: 'memberCount', label: '成员数', hint: '已启用的班级成员', icon: 'users', tone: 'accent' },
-  { key: 'messageCount', label: '留言数', hint: '全部留言（含隐藏）', icon: 'message', tone: 'success' },
-  { key: 'hiddenMessageCount', label: '隐藏留言', hint: '当前在展示站不可见', icon: 'eyeOff', tone: 'danger' },
+  { key: 'messageCount', label: '内容数', hint: '全部内容（含隐藏）', icon: 'message', tone: 'success' },
+  { key: 'hiddenMessageCount', label: '隐藏内容', hint: '当前在展示站不可见', icon: 'eyeOff', tone: 'danger' },
+  { key: 'privateMessageCount', label: '私密留言', hint: '仅统计数量，内容不可见', icon: 'lock', tone: 'default' },
   { key: 'photoCount', label: '照片数', hint: '所有相册中的照片', icon: 'image', tone: 'default' },
   { key: 'activeInviteCount', label: '有效邀请码', hint: '未停用、未过期、未用完', icon: 'ticket', tone: 'warning' },
 ];

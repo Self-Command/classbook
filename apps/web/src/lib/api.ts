@@ -12,7 +12,10 @@ import type {
   AlbumDto,
   AlbumSummaryDto,
   AlbumUpdateInput,
+  CommentCreateInput,
+  MessageCommentDto,
   MessageDto,
+  NotificationListDto,
   Paginated,
   PhotoDto,
   ProfileDto,
@@ -293,6 +296,49 @@ export const albumsApi = {
   removePhoto: (photoId: string) =>
     request<void>(`/albums/photos/${encodeURIComponent(photoId)}`, {
       method: 'DELETE',
+    }),
+};
+
+export const plazaApi = {
+  list: (cursor?: string, limit = 20) =>
+    request<{ items: MessageDto[]; nextCursor: string | null }>('/plaza', {
+      query: { cursor, limit },
+    }),
+  get: (id: string) =>
+    request<{ post: MessageDto; comments: MessageCommentDto[] }>(
+      `/plaza/${encodeURIComponent(id)}`,
+    ),
+  create: (input: MessageCreateInput) =>
+    request<{ post: MessageDto }>('/plaza', { method: 'POST', json: input }),
+  comment: (postId: string, input: CommentCreateInput) =>
+    request<{ comment: MessageCommentDto }>(
+      `/plaza/${encodeURIComponent(postId)}/comments`,
+      { method: 'POST', json: input },
+    ),
+  removeComment: (commentId: string) =>
+    request<void>(`/plaza/comments/${encodeURIComponent(commentId)}`, {
+      method: 'DELETE',
+    }),
+  like: (postId: string, liked: boolean) =>
+    request<{ likeCount: number; likedByMe: boolean }>(
+      `/plaza/${encodeURIComponent(postId)}/like`,
+      { method: liked ? 'DELETE' : 'POST' },
+    ),
+  remove: (postId: string) =>
+    request<void>(`/plaza/${encodeURIComponent(postId)}`, { method: 'DELETE' }),
+};
+
+export const notificationsApi = {
+  list: (cursor?: string, limit = 20) =>
+    request<NotificationListDto>('/notifications', {
+      query: { cursor, limit },
+    }),
+  unreadCount: () =>
+    request<{ unreadCount: number }>('/notifications/unread-count'),
+  markRead: (input: { ids?: string[]; all?: boolean }) =>
+    request<{ unreadCount: number }>('/notifications/read', {
+      method: 'POST',
+      json: input,
     }),
 };
 

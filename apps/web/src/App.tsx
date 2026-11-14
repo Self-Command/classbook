@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
@@ -11,9 +11,11 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import MePage from './pages/MePage';
 import NotFoundPage from './pages/NotFoundPage';
+import PlazaPage from './pages/PlazaPage';
+import PostDetailPage from './pages/PostDetailPage';
+import NotificationsPage from './pages/NotificationsPage';
 import RegisterPage from './pages/RegisterPage';
 import TimelinePage from './pages/TimelinePage';
-import WallPage from './pages/WallPage';
 
 export default function App() {
   return (
@@ -27,7 +29,10 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/classmates" element={<ClassmatesPage />} />
             <Route path="/classmates/:id" element={<ClassmateDetailPage />} />
-            <Route path="/wall" element={<WallPage />} />
+            <Route path="/plaza" element={<PlazaPage />} />
+            <Route path="/plaza/:id" element={<PostDetailPage />} />
+            <Route path="/wall" element={<Navigate replace to="/plaza" />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/albums" element={<AlbumsPage />} />
             <Route path="/albums/:id" element={<AlbumDetailPage />} />
             <Route path="/timeline" element={<TimelinePage />} />

@@ -55,9 +55,13 @@ export function toProfileDto(profile: Profile): ProfileDto {
   };
 }
 
-export function toPublicProfileDto(profile: Profile): PublicProfileDto {
+export function toPublicProfileDto(
+  profile: Profile,
+  username = '',
+): PublicProfileDto {
   return {
     id: profile.userId,
+    username,
     realName: profile.realName,
     nickname: profile.nickname,
     avatarUrl: profile.avatarUrl,
@@ -253,7 +257,9 @@ export function toAdminMemberDto(user: UserWithProfile, messageCount: number): A
     role: user.role,
     status: user.status,
     createdAt: user.createdAt.toISOString(),
-    profile: user.profile ? toPublicProfileDto(user.profile) : null,
+    profile: user.profile
+      ? toPublicProfileDto(user.profile, user.username)
+      : null,
     messageCount,
   };
 }

@@ -181,8 +181,8 @@ export function MessagesPage() {
   return (
     <>
       <PageHeader
-        title="留言审核"
-        description="查看班级留言，隐藏不适宜的内容。隐藏后展示站立即不可见，可随时恢复。"
+        title="内容管理"
+        description="查看班级公开内容，隐藏不适宜的帖子。隐藏后展示站立即不可见，可随时恢复。私密留言仅显示数量，内容对管理员不可见。"
         actions={
           <Button variant="secondary" isPending={loading} onPress={reload}>
             {({ isPending }) => (
@@ -212,7 +212,9 @@ export function MessagesPage() {
             </Tabs.List>
           </Tabs.ListContainer>
           <p className="text-xs text-muted">
-            共 {data?.total ?? 0} 条留言{filter === 'HIDDEN' ? ' · 仅显示已隐藏' : ''}
+            共 {data?.total ?? 0} 条公开内容
+            {filter === 'HIDDEN' ? ' · 仅显示已隐藏' : ''}
+            {` · 私密留言 ${data?.privateCount ?? 0} 条（仅统计）`}
           </p>
         </div>
 

@@ -255,8 +255,10 @@ export const admin = {
     });
   },
 
-  messages(query: AdminMessagesQuery = {}): Promise<Paginated<MessageDto>> {
-    return request<Paginated<MessageDto>>(
+  messages(
+    query: AdminMessagesQuery = {},
+  ): Promise<Paginated<MessageDto> & { privateCount: number }> {
+    return request<Paginated<MessageDto> & { privateCount: number }>(
       `/admin/messages${buildQuery({
         status: query.status,
         page: query.page,

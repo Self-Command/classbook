@@ -132,8 +132,9 @@ export const messageCreateSchema = z.object({
   images: z.array(uploadUrlSchema).max(MESSAGE_IMAGES_MAX).optional(),
 });
 
+export const COMMENT_MAX_LENGTH = 1000;
 export const commentCreateSchema = z.object({
-  content: z.string().trim().min(1, '评论不能为空').max(1000),
+  content: z.string().trim().min(1, '评论不能为空').max(COMMENT_MAX_LENGTH),
   parentId: z.string().trim().min(1).nullable().optional(),
 });
 
@@ -535,6 +536,7 @@ export interface UserDto {
 
 export interface PublicProfileDto {
   id: string;
+  username: string;
   realName: string;
   nickname: string | null;
   avatarUrl: string | null;
