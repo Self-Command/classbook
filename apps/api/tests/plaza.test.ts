@@ -500,4 +500,64 @@ describe('广场与通知（plaza / notifications）', () => {
       }
     });
   });
+
+  describe('Web Push 订阅（Task 6）', () => {
+    it('订阅、幂等与退订', async () => {
+      const alice = await createUser({ username: 'alice' });
+      const agent = await loginAgent('alice');
+      const endpoint = 'https://push.example.com/sub/abc';
+
+      const first = await agent
+        .post('/api/notifications/subscribe')
+        .send({ endpoint, keys: { p256dh: 'BPk', auth: 'secret' } });
+      expect(first.status).toBe(201);
+
+      const second = await agent
+        .post('/api/notifications/subscribe')
+        .send({ endpoint, keys: { p256dh: 'BPk2', auth: 'secret2' } });
+      expect(second.status).toBe(201);
+      expect(second.body.id).toBe(first.body.id);
+
+      const count = await prisma.pushSubscription.count({
+        where: { userId: alice.id },
+      });
+      expect(count).toBe(1);
+
+      const removed = await agent
+        .delete('/api/notifications/subscribe')
+        .send({ endpoint });
+      expect(removed.status).toBe(204);
+
+      expect(
+        await prisma.pushSubscription.count({ where: { userId: alice.id } }),
+      ).toBe(0);
+    });
+
+    it('非法订阅载荷返回 400；未登录返回 401', async () => {
+      await createUser({ username: 'alice' });
+      const agent = await loginAgent('alice');
+
+      const invalid = await agent
+        .post('/api/notifications/subscribe')
+        .send({ endpoint: 'no-url', keys: { p256dh: '', auth: '' } });
+      expect(invalid.status).toBe(400);
+
+      const anonymous = await request(app)
+        .post('/api/notifications/subscribe')
+        .send({
+          endpoint: 'https://push.example.com/sub/x',
+          keys: { p256dh: 'a', auth: 'b' },
+        });
+      expect(anonymous.status).toBe(401);
+    });
+
+    it('VAPID 公钥接口返回配置或 null', async () => {
+      await createUser({ username: 'alice' });
+      const agent = await loginAgent('alice');
+
+      const response = await agent.get('/api/notifications/vapid-public');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('publicKey');
+    });
+  });
 });

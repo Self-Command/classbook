@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { toNotificationDto } from './serialize';
 import { notificationBus, type NotificationEvent } from './notification-bus';
+import { sendPushToUser } from './web-push';
 
 const MENTION_REGEX = /@([A-Za-z0-9_-]{1,20})/g;
 const MENTION_MAX = 10;
@@ -10,6 +11,29 @@ const MENTION_MAX = 10;
 const actorInclude = {
   actor: { include: { profile: true } },
 } satisfies Prisma.NotificationInclude;
+
+const NOTIFICATION_TEXT: Record<NotificationType, string> = {
+  PROFILE_MESSAGE: '在你的留言板留言',
+  POST_COMMENT: '评论了你的帖子',
+  COMMENT_REPLY: '回复了你',
+  POST_LIKE: '赞了你的帖子',
+  MENTION: '在帖子里提到了你',
+};
+
+function notificationText(type: NotificationType): string {
+  return NOTIFICATION_TEXT[type] ?? '有一条新消息';
+}
+
+function notificationUrl(
+  type: NotificationType,
+  messageId: string | null,
+  commentId: string | null,
+): string {
+  if (type === 'PROFILE_MESSAGE') return '/plaza';
+  if (!messageId) return '/notifications';
+  const hash = commentId ? `#comment-${commentId}` : '';
+  return `/plaza/${messageId}${hash}`;
+}
 
 export async function countUnread(userId: string): Promise<number> {
   return prisma.notification.count({ where: { userId, readAt: null } });
@@ -49,6 +73,14 @@ export async function createNotification(input: {
     unreadCount,
   };
   notificationBus.emit(input.userId, event);
+
+  void sendPushToUser(input.userId, {
+    title: notification.actor.profile?.realName ?? notification.actor.username,
+    body: `${notificationText(input.type)}${input.preview ? `：${input.preview}` : ''}`,
+    url: notificationUrl(input.type, notification.messageId, notification.commentId),
+    tag: `notification-${notification.id}`,
+  });
+
   return event;
 }
 

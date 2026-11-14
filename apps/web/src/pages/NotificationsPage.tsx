@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { notificationsApi } from '@/lib/api';
 import type { NotificationListDto } from '@classbook/shared';
 import { useAsyncData } from '@/lib/useAsyncData';
-import { useNotifications } from '@/lib/notifications';
+import { useNotifications, enableDesktopNotifications, isDesktopNotificationEnabled, isIosNotInstalled } from '@/lib/notifications';
 import { useSiteCopy } from '@/lib/siteCopy';
 import { formatDateTime } from '@/lib/format';
 import { EmptyPanel, ErrorPanel } from '@/components/content/ContentStates';
@@ -23,6 +23,17 @@ export default function NotificationsPage() {
   const { markAllRead, markRead } = useNotifications();
   const [cursor, setCursor] = useState<string | null>(null);
   const [items, setItems] = useState<NotificationDto[]>([]);
+  const [pushState, setPushState] = useState<
+    { status: 'idle' | 'busy'; message: string | null }
+  >({ status: 'idle', message: null });
+  const [pushEnabled, setPushEnabled] = useState(isDesktopNotificationEnabled());
+
+  const togglePush = useCallback(async () => {
+    setPushState({ status: 'busy', message: null });
+    const result = await enableDesktopNotifications();
+    setPushEnabled(isDesktopNotificationEnabled());
+    setPushState({ status: 'idle', message: result.message });
+  }, []);
 
   const load = useCallback(
     (): Promise<NotificationListDto> =>
@@ -71,6 +82,28 @@ export default function NotificationsPage() {
             {copy.notificationsMarkAllRead}
           </Button>
         </div>
+
+        <Card className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/50 p-3">
+          <span className="min-w-0 text-xs text-muted">
+            {pushState.message ??
+              (isIosNotInstalled()
+                ? 'iPhone 请先「添加到主屏幕」，再从主屏幕打开开启通知'
+                : '离校时也能第一时间收到同学的消息提醒')}
+          </span>
+          <Button
+            className="h-auto min-w-0 px-3 py-1.5 text-xs"
+            isDisabled={pushState.status === 'busy' || pushEnabled}
+            size="sm"
+            variant={pushEnabled ? 'ghost' : 'primary'}
+            onPress={() => void togglePush()}
+          >
+            {pushState.status === 'busy'
+              ? '开启中…'
+              : pushEnabled
+                ? '已开启'
+                : '开启桌面通知'}
+          </Button>
+        </Card>
 
         {loading && items.length === 0 ? (
           <div className="flex flex-col gap-3">

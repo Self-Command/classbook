@@ -144,3 +144,82 @@ export function useNotifications(): NotificationsContextValue {
   }
   return context;
 }
+
+const PUSH_SUPPORTED =
+  typeof window !== 'undefined' &&
+  'serviceWorker' in navigator &&
+  'PushManager' in window;
+
+function urlBase64ToUint8Array(base64: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+  const normalized = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(normalized);
+  const output = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i += 1) {
+    output[i] = raw.charCodeAt(i);
+  }
+  return output;
+}
+
+export async function enableDesktopNotifications(): Promise<{
+  ok: boolean;
+  message: string;
+}> {
+  if (!PUSH_SUPPORTED) {
+    return { ok: false, message: '当前浏览器不支持桌面通知' };
+  }
+
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    return { ok: false, message: '没有授予通知权限' };
+  }
+
+  const registration = await navigator.serviceWorker.register('/sw.js');
+  await navigator.serviceWorker.ready;
+
+  const { publicKey } = await notificationsApi.getVapidPublicKey();
+  if (!publicKey) {
+    return { ok: false, message: '服务端未配置推送密钥' };
+  }
+
+  const existing = await registration.pushManager.getSubscription();
+  const subscription =
+    existing ??
+    (await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+    }));
+
+  const json = subscription.toJSON() as {
+    endpoint?: string;
+    keys?: { p256dh?: string; auth?: string };
+  };
+
+  if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
+    return { ok: false, message: '订阅信息不完整' };
+  }
+
+  await notificationsApi.subscribe({
+    endpoint: json.endpoint,
+    keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
+  });
+
+  return { ok: true, message: '桌面通知已开启' };
+}
+
+export function isDesktopNotificationEnabled(): boolean {
+  return (
+    PUSH_SUPPORTED &&
+    typeof Notification !== 'undefined' &&
+    Notification.permission === 'granted'
+  );
+}
+
+export function isIosNotInstalled(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (navigator as unknown as { standalone?: boolean }).standalone === true;
+  return isIos && !standalone;
+}

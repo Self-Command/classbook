@@ -134,3 +134,51 @@ notificationsRouter.get('/stream', async (req, res) => {
   req.on('close', close);
   res.on('close', close);
 });
+
+const subscribeSchema = z.object({
+  endpoint: z.string().trim().url().max(1024),
+  keys: z.object({
+    p256dh: z.string().trim().min(1).max(256),
+    auth: z.string().trim().min(1).max(256),
+  }),
+});
+
+notificationsRouter.post('/subscribe', async (req, res) => {
+  const data = subscribeSchema.parse(req.body);
+
+  const subscription = await prisma.pushSubscription.upsert({
+    where: { endpoint: data.endpoint },
+    update: {
+      userId: req.user!.id,
+      p256dh: data.keys.p256dh,
+      auth: data.keys.auth,
+    },
+    create: {
+      userId: req.user!.id,
+      endpoint: data.endpoint,
+      p256dh: data.keys.p256dh,
+      auth: data.keys.auth,
+    },
+  });
+
+  res.status(201).json({ id: subscription.id });
+});
+
+const unsubscribeSchema = z.object({
+  endpoint: z.string().trim().min(1).max(1024),
+});
+
+notificationsRouter.delete('/subscribe', async (req, res) => {
+  const data = unsubscribeSchema.parse(req.body);
+
+  await prisma.pushSubscription.deleteMany({
+    where: { endpoint: data.endpoint, userId: req.user!.id },
+  });
+
+  res.status(204).end();
+});
+
+notificationsRouter.get('/vapid-public', async (_req, res) => {
+  const publicKey = process.env.VAPID_PUBLIC_KEY ?? null;
+  res.status(200).json({ publicKey });
+});

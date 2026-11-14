@@ -340,6 +340,21 @@ export const notificationsApi = {
       method: 'POST',
       json: input,
     }),
+  getVapidPublicKey: () =>
+    request<{ publicKey: string | null }>('/notifications/vapid-public'),
+  subscribe: (input: {
+    endpoint: string;
+    keys: { p256dh: string; auth: string };
+  }) =>
+    request<{ id: string }>('/notifications/subscribe', {
+      method: 'POST',
+      json: input,
+    }),
+  unsubscribe: (endpoint: string) =>
+    request<void>('/notifications/subscribe', {
+      method: 'DELETE',
+      json: { endpoint },
+    }),
 };
 
 export const timelineApi = {

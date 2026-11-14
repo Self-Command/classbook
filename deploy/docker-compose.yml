@@ -41,6 +41,8 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?请在 deploy/.env 设置 ADMIN_PASSWORD}
       WEB_ORIGIN: ${PUBLIC_ORIGIN:?请在 deploy/.env 设置 PUBLIC_ORIGIN}
       ADMIN_ORIGIN: ${PUBLIC_ORIGIN:?请在 deploy/.env 设置 PUBLIC_ORIGIN}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       TZ: ${TZ:-Asia/Shanghai}
     volumes:
       - uploads:/app/uploads
