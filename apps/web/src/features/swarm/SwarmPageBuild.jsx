@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Check, Gauge, Home, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Check, Gauge, Home, PlayCircle, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { SwarmEngine } from "./animation/SwarmEngine.js";
 import { TaskState } from "./animation/config.js";
 import { SceneElements } from "./components/SceneElements.jsx";
@@ -571,6 +571,7 @@ export function SwarmPageBuild() {
               title={auto ? "自动播放已开启" : "自动播放已关闭"}
               className={auto ? "is-auto-on" : undefined}
             >
+              <PlayCircle aria-hidden="true" />
               <span className="swarm-build-bar__label">自动</span>
             </button>
             {build ? (
