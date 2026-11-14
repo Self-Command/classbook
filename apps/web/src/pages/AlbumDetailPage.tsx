@@ -286,7 +286,7 @@ export default function AlbumDetailPage() {
                   )}
 
                   {canManage && (
-                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-1.5 bg-gradient-to-t from-black/70 via-black/25 to-transparent p-2 pt-8 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
+                    <div className="absolute inset-x-0 bottom-0 z-20 flex items-center justify-end gap-1.5 bg-gradient-to-t from-black/70 via-black/25 to-transparent p-2 pt-8 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
                       {!isCover && (
                         <Button
                           data-manage
