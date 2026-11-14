@@ -66,6 +66,7 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
         className="relative h-auto w-auto min-w-0 rounded-full p-2"
         size="sm"
         variant="ghost"
+        data-tour="bell"
       >
         <IconBell className="size-5" />
         {unreadCount > 0 && (

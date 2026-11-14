@@ -121,6 +121,10 @@
 .swarm-build-bar__actions::-webkit-scrollbar {
   display: none;
 }
+/* 「自动」开关开启时用强调色提示当前会随路由自动重建。 */
+.swarm-build-bar__actions button.is-auto-on {
+  color: var(--accent, var(--ink));
+}
 /* 音量组固定在操作按钮右侧，不参与横向滚动，保证随时可静音/调节。 */
 .swarm-build-bar__volume {
   display: flex;

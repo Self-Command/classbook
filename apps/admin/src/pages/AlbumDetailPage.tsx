@@ -185,7 +185,7 @@ export function AlbumDetailPage() {
                       </button>
 
                       {isCover ? (
-                        <div className="pointer-events-none absolute left-2 top-2">
+                        <div className="pointer-events-none absolute right-2 top-2">
                           <Chip size="sm" color="success" variant="primary" className="shadow-sm">
                             封面
                           </Chip>

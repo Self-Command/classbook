@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Check, Gauge, Home, RotateCcw, Volume2, VolumeX } from "lucide-react";
@@ -22,6 +22,20 @@ const LAYOUT_SETTLE_MS = 140;
 const MAX_BUILD_MS = 8000;
 /** 遮罩淡出时长，必须与styles/build.css中的transition保持一致。 */
 const LEAVE_MS = 420;
+/** 自动播放偏好的存储键；未设置时视为关闭，只有用户显式开启才随路由自动重建。 */
+const AUTOPLAY_KEY = "classbook:swarm-autoplay";
+
+/**
+ * 读取自动播放偏好；隐私模式等场景下 localStorage 可能不可用，回退为关闭。
+ * @returns {boolean} 是否开启自动播放。
+ */
+function readAutoplay() {
+  try {
+    return window.localStorage.getItem(AUTOPLAY_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 /**
  * 读取系统「减少动态效果」偏好；SSR与旧浏览器按未开启处理。
@@ -63,6 +77,12 @@ export function SwarmPageBuild() {
   const [preparing, setPreparing] = useState(() => !prefersReducedMotion());
   const [speed, setSpeed] = useState(1);
   const [runId, setRunId] = useState(0);
+  const [auto, setAuto] = useState(readAutoplay);
+  const autoRef = useRef(auto);
+  autoRef.current = auto;
+  // pendingRef 标记当前这次 effect 运行是否由手动/首次登录触发，避免普通路由切换自动重建。
+  const pendingRef = useRef(false);
+  const firstRunRef = useRef(true);
   const initialAudio = useRef(swarmAudio.getState());
   const [muted, setMuted] = useState(() => !initialAudio.current.enabled);
   const [volume, setVolume] = useState(() => initialAudio.current.volume);
@@ -106,6 +126,15 @@ export function SwarmPageBuild() {
   useEffect(() => {
     // location.key用于区分同一个pathname上的不同历史记录，缺失时避免无谓重建。
     if (!active || !location.key) return undefined;
+
+    // 只有手动请求、首次登录或用户开启「自动」后才重建；普通路由切换不再自动播放。
+    const firstRun = firstRunRef.current;
+    firstRunRef.current = false;
+    if (pendingRef.current) {
+      pendingRef.current = false;
+    } else if (!(autoRef.current && !firstRun)) {
+      return undefined;
+    }
 
     const run = ++runRef.current;
     let cancelled = false;
@@ -195,6 +224,7 @@ export function SwarmPageBuild() {
         if (stale()) return;
         engineRef.current = null;
         setBuild(null);
+        window.dispatchEvent(new CustomEvent("classbook:swarm-finished"));
       }, LEAVE_MS);
     };
 
@@ -353,10 +383,35 @@ export function SwarmPageBuild() {
     };
   }, [location.key, runId, active]);
 
-  const replay = () => {
+  /** 手动请求一次页面重建；首次登录引导也通过该函数触发。 */
+  const requestBuild = useCallback(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
+    pendingRef.current = true;
     setRunId((id) => id + 1);
-  };
+  }, []);
+
+  // 外部（首次登录引导）用事件请求播放；带 auto 标记的请求在关闭自动播放时忽略。
+  useEffect(() => {
+    const onPlay = (event) => {
+      if (event?.detail?.reason === "auto" && !autoRef.current) return;
+      requestBuild();
+    };
+    window.addEventListener("classbook:swarm-play", onPlay);
+    return () => window.removeEventListener("classbook:swarm-play", onPlay);
+  }, [requestBuild]);
+
+  /** 切换自动播放偏好并持久化；默认关闭，只有用户显式开启才随路由自动重建。 */
+  const toggleAuto = useCallback(() => {
+    setAuto((value) => {
+      const next = !value;
+      try {
+        window.localStorage.setItem(AUTOPLAY_KEY, next ? "1" : "0");
+      } catch {
+        // 存储失败时仅本页生效。
+      }
+      return next;
+    });
+  }, []);
 
   const cycleSpeed = () => {
     const next = speed >= 3 ? 1 : speed + 1;
@@ -426,124 +481,134 @@ export function SwarmPageBuild() {
         : null}
       {build
         ? createPortal(
-            <>
+            <div
+              className={`swarm-experience swarm-build-overlay${
+                build.leaving ? " is-leaving" : ""
+              }`}
+              data-swarm-build
+              style={{ background: build.background, height: build.height }}
+            >
               <div
-                className={`swarm-experience swarm-build-overlay${
-                  build.leaving ? " is-leaving" : ""
-                }`}
-                data-swarm-build
-                style={{ background: build.background, height: build.height }}
+                className="canvas"
+                aria-hidden="true"
+                style={{ width: build.width, height: build.height }}
               >
-                <div
-                  className="canvas"
-                  aria-hidden="true"
-                  style={{ width: build.width, height: build.height }}
-                >
-                  <SceneElements
-                    elements={build.engine.list}
-                    height={build.height}
-                    width={build.width}
-                  />
-                  <CursorLayer engine={build.engine} maxCursors={14} />
-                </div>
+                <SceneElements
+                  elements={build.engine.list}
+                  height={build.height}
+                  width={build.width}
+                />
+                <CursorLayer engine={build.engine} maxCursors={14} />
               </div>
-              <div className="swarm-build-bar-anchor">
-                <div
-                  className="swarm-build-bar"
-                  data-swarm-ignore
-                  role="toolbar"
-                  aria-label="页面重建控制"
-                >
-                  <span className="swarm-build-bar__status">
-                    <span className="swarm-build-bar__dot" aria-hidden="true" />
-                    {done === total ? (
-                      "重建完成"
-                    ) : (
-                      <>
-                        <span className="swarm-build-bar__prefix">已重建 </span>
-                        <span className="swarm-build-bar__count">
-                          {done}/{total}
-                        </span>
-                        <span className="swarm-build-bar__hint">
-                          {" "}
-                          · 向下滚动
-                        </span>
-                      </>
-                    )}
-                  </span>
-                  <span className="swarm-build-bar__divider" aria-hidden="true" />
-                  <div className="swarm-build-bar__actions">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (location.pathname === "/") replay();
-                        else navigate("/");
-                      }}
-                      aria-label="回到首页"
-                    >
-                      <Home aria-hidden="true" />
-                      <span className="swarm-build-bar__label">首页</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={replay}
-                      aria-label="重新播放重建动画"
-                    >
-                      <RotateCcw aria-hidden="true" />
-                      <span className="swarm-build-bar__label">重播</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cycleSpeed}
-                      aria-label={`动画速度 ${speed} 倍，点击切换`}
-                    >
-                      <Gauge aria-hidden="true" />
-                      <span>{speed}×</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="is-primary"
-                      onClick={() => finishRef.current?.()}
-                      aria-label="完成重建并进入页面"
-                    >
-                      <Check aria-hidden="true" />
-                      <span className="swarm-build-bar__label">完成</span>
-                    </button>
-                  </div>
-                  <span className="swarm-build-bar__divider" aria-hidden="true" />
-                  <div className="swarm-build-bar__volume">
-                    <button
-                      type="button"
-                      onClick={toggleMute}
-                      aria-label={silent ? "开启音效" : "关闭音效"}
-                      aria-pressed={!silent}
-                      title={silent ? "开启音效" : "关闭音效"}
-                    >
-                      {silent ? (
-                        <VolumeX aria-hidden="true" />
-                      ) : (
-                        <Volume2 aria-hidden="true" />
-                      )}
-                    </button>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={Math.round(volume * 100)}
-                      onChange={changeVolume}
-                      onPointerDown={() => swarmAudio.resume()}
-                      className="swarm-build-bar__volume-range"
-                      aria-label="音效音量"
-                      aria-valuetext={`${Math.round(volume * 100)}%`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </>,
+            </div>,
             document.body,
           )
         : null}
+      <div className="swarm-build-bar-anchor" data-tour="swarm-bar">
+        <div
+          className="swarm-build-bar"
+          data-swarm-ignore
+          role="toolbar"
+          aria-label="页面重建控制"
+        >
+          <span className="swarm-build-bar__status">
+            <span className="swarm-build-bar__dot" aria-hidden="true" />
+            {build ? (
+              done === total ? (
+                "重建完成"
+              ) : (
+                <>
+                  <span className="swarm-build-bar__prefix">已重建 </span>
+                  <span className="swarm-build-bar__count">
+                    {done}/{total}
+                  </span>
+                  <span className="swarm-build-bar__hint"> · 向下滚动</span>
+                </>
+              )
+            ) : (
+              "页面重建"
+            )}
+          </span>
+          <span className="swarm-build-bar__divider" aria-hidden="true" />
+          <div className="swarm-build-bar__actions">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              aria-label="回到首页"
+            >
+              <Home aria-hidden="true" />
+              <span className="swarm-build-bar__label">首页</span>
+            </button>
+            <button
+              type="button"
+              onClick={requestBuild}
+              aria-label="播放页面重建动画"
+            >
+              <RotateCcw aria-hidden="true" />
+              <span className="swarm-build-bar__label">
+                {build ? "重播" : "播放"}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={cycleSpeed}
+              aria-label={`动画速度 ${speed} 倍，点击切换`}
+            >
+              <Gauge aria-hidden="true" />
+              <span>{speed}×</span>
+            </button>
+            <button
+              type="button"
+              onClick={toggleAuto}
+              aria-pressed={auto}
+              aria-label={auto ? "关闭自动播放动画" : "开启自动播放动画"}
+              title={auto ? "自动播放已开启" : "自动播放已关闭"}
+              className={auto ? "is-auto-on" : undefined}
+            >
+              <span className="swarm-build-bar__label">自动</span>
+            </button>
+            {build ? (
+              <button
+                type="button"
+                className="is-primary"
+                onClick={() => finishRef.current?.()}
+                aria-label="完成重建并进入页面"
+              >
+                <Check aria-hidden="true" />
+                <span className="swarm-build-bar__label">完成</span>
+              </button>
+            ) : null}
+          </div>
+          <span className="swarm-build-bar__divider" aria-hidden="true" />
+          <div className="swarm-build-bar__volume">
+            <button
+              type="button"
+              onClick={toggleMute}
+              aria-label={silent ? "开启音效" : "关闭音效"}
+              aria-pressed={!silent}
+              title={silent ? "开启音效" : "关闭音效"}
+            >
+              {silent ? (
+                <VolumeX aria-hidden="true" />
+              ) : (
+                <Volume2 aria-hidden="true" />
+              )}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={Math.round(volume * 100)}
+              onChange={changeVolume}
+              onPointerDown={() => swarmAudio.resume()}
+              className="swarm-build-bar__volume-range"
+              aria-label="音效音量"
+              aria-valuetext={`${Math.round(volume * 100)}%`}
+            />
+          </div>
+        </div>
+      </div>
     </>
   );
 }

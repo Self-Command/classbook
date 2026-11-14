@@ -274,13 +274,8 @@ export default function AlbumDetailPage() {
                       src={photo.url}
                     />
                   )}
-                  {photo.videoUrl ? (
-                    <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur">
-                      实况
-                    </span>
-                  ) : null}
                   {isCover && (
-                    <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-background shadow">
+                    <span className="pointer-events-none absolute right-2 top-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium text-background shadow">
                       封面
                     </span>
                   )}

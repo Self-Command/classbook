@@ -13,6 +13,7 @@ import { getErrorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useSiteCopy } from '@/lib/siteCopy';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { OnboardingTour } from '@/components/OnboardingTour';
 import { SwarmPageBuild } from '@/features/swarm/index.js';
 import '@/features/swarm/styles/index.css';
 import { UserAvatar } from './ui/UserAvatar';
@@ -96,7 +97,7 @@ export function Layout() {
             </span>
           </Link>
 
-          <nav className="ml-6 hidden items-center gap-1 lg:flex" aria-label="主导航">
+          <nav className="ml-6 hidden items-center gap-1 lg:flex" aria-label="主导航" data-tour="nav">
             {navItems.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
                 {item.label}
@@ -118,6 +119,7 @@ export function Layout() {
                   variant="ghost"
                   className="hidden h-auto gap-2 rounded-full py-1 pl-1 pr-3 sm:flex"
                   aria-label="账号菜单"
+                  data-tour="account"
                 >
                   <UserAvatar name={displayName} src={user.profile?.avatarUrl} size="sm" />
                   <span className="max-w-32 truncate text-sm">{displayName}</span>
@@ -252,6 +254,7 @@ export function Layout() {
         <Outlet />
       </main>
       <SwarmPageBuild />
+      <OnboardingTour />
 
       <footer className="border-t border-separator bg-default/40">
         <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-2 px-4 py-8 text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
