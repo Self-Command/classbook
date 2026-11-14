@@ -161,10 +161,7 @@ export function Layout() {
                     </Drawer.Header>
                     <Drawer.Body>
                       {user && (
-                        <div className="mb-2 flex items-center justify-between rounded-2xl bg-default p-2.5">
-                          <span className="text-xs font-medium text-muted">
-                            {copy.notificationsTitle}
-                          </span>
+                        <div className="mb-2 flex justify-end">
                           <NotificationBell onNavigate={() => mobileMenu.close()} />
                         </div>
                       )}

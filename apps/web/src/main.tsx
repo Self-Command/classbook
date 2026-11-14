@@ -6,6 +6,7 @@ import App from './App';
 import { AuthProvider } from './lib/auth';
 import { NotificationsProvider } from './lib/notifications';
 import { ThemeProvider } from './lib/theme';
+import { ToastProvider } from './components/Toast';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
@@ -14,8 +15,10 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ThemeProvider>
           <NotificationsProvider>
-            <App />
-            <Toast.Provider placement="top end" />
+            <ToastProvider>
+              <App />
+              <Toast.Provider placement="top end" />
+            </ToastProvider>
           </NotificationsProvider>
         </ThemeProvider>
       </AuthProvider>
