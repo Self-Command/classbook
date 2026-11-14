@@ -1,5 +1,8 @@
-import webpush from 'web-push';
+import { createRequire } from 'node:module';
 import { prisma } from '../db';
+
+const require = createRequire(import.meta.url);
+const webpush = require('web-push') as typeof import('web-push');
 
 let configured: boolean | null = null;
 
